@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	utils "github.com/jonathon-chew/Thoth/Utils"
+	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 )
 
 var HTTPStatusResponseMeanings = map[string]string{
@@ -98,7 +98,7 @@ func OpenRemoteOrigin(place string) error {
 }
 
 // GIT TAG
-func GetTags() (string, error) {
+func getTags() (string, error) {
 	cmd := exec.Command("git", "tag")
 
 	var out bytes.Buffer
@@ -128,7 +128,7 @@ func GetLatestTag() (string, error) {
 		return "", fmt.Errorf("[Error]: Unable to find a git folder in the current directory")
 	}
 
-	versions, err := GetTags()
+	versions, err := getTags()
 	if err != nil {
 		return "", fmt.Errorf("[Error]: Unable to successfully get the tags\n ")
 	}
@@ -195,7 +195,7 @@ func GetLatestTag() (string, error) {
 	return latestVersion, nil
 }
 
-func MakeTag(newTag string) error {
+func makeTag(newTag string) error {
 	cmd := exec.Command("git", "tag", newTag, "-m", "Release Version: "+strings.ReplaceAll(newTag, "v", ""))
 
 	var out bytes.Buffer
@@ -241,7 +241,7 @@ func NewGitTag(argument string) error {
 	}
 
 	if version == "" {
-		ErrMakingTag := MakeTag("v0.1.0")
+		ErrMakingTag := makeTag("v0.1.0")
 		if ErrMakingTag != nil {
 			return ErrMakingTag
 		}
@@ -296,7 +296,7 @@ func NewGitTag(argument string) error {
 		return errors.New(argument + " was not recognised as a valid command")
 	}
 
-	ErrMakingTag := MakeTag(newTag)
+	ErrMakingTag := makeTag(newTag)
 	if ErrMakingTag != nil {
 		return ErrMakingTag
 	}
@@ -305,7 +305,7 @@ func NewGitTag(argument string) error {
 }
 
 // MAKE A GIT REQUEST
-func GenericGitRequest() (Credentials, error) {
+func genericGitRequest() (Credentials, error) {
 	remoteOrigin, err := GetRemoteOrigin()
 	var credentials Credentials
 	if err != nil {

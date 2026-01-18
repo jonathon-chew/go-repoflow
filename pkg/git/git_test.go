@@ -34,7 +34,7 @@ func TestFindGitFolder(t *testing.T) {
 func TestGitTag(t *testing.T) {
 	t.Log("Testing GetGitTag")
 
-	returnString, ErrGettingTags := GetTags()
+	returnString, ErrGettingTags := getTags()
 	if ErrGettingTags != nil {
 		t.Error(aphrodite.ReturnError(fmt.Sprintf("%s", ErrGettingTags)))
 	}
@@ -113,7 +113,7 @@ func TestListIssues(t *testing.T) {
 
 func TestGenericGit(t *testing.T) {
 	t.Logf("Testing GetRemoteOrigin")
-	GitCredentials, err := GenericGitRequest()
+	GitCredentials, err := genericGitRequest()
 	if err != nil {
 		t.Fatal(aphrodite.ReturnError(fmt.Sprintf("Failed to get Git data: %v", err)))
 	}

@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	utils "github.com/jonathon-chew/Thoth/Utils"
+	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 )
 
 // GITHUB STRUCTS
@@ -84,7 +84,7 @@ func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
 
 	var ResponseInstance []GithubIssueResponse
 
-	GitCredentials, err := GenericGitRequest()
+	GitCredentials, err := genericGitRequest()
 	if err != nil {
 		return ResponseInstance, err
 	}
@@ -142,7 +142,7 @@ func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
 func MakeGithubIssue(TITLE, BODY string) error {
 
 	// Get the credentials required
-	GithubCredentials, err := GenericGitRequest()
+	GithubCredentials, err := genericGitRequest()
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func CloseGithubIssue(closeIssue *GithubIssueResponse) error {
 	closeIssue.State_Reason = "completed"
 
 	// Get the credentials
-	GithubCredentials, err := GenericGitRequest()
+	GithubCredentials, err := genericGitRequest()
 	if err != nil {
 		return err
 	}

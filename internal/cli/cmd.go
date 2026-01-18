@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	utils "github.com/jonathon-chew/Thoth/Utils"
-	"github.com/jonathon-chew/Thoth/git"
+	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
+	"github.com/jonathon-chew/go-repoflow/pkg/git"
 )
 
 func CLI(CommandLineArguments []string) error {

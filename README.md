@@ -1,6 +1,6 @@
-# Thoth (Go)
+# go-repoflow (Go)
 <p align="center">
-<img width="400" src="doc/images/Thoth.png" alt="Thoth" title="Thoth" />
+<img width="400" src="doc/images/go-repoflow.png" alt="Mascot/Icon" title="Mascot/Icon" />
 </p>
 
 A developer-focused CLI that bridges local git workflows and GitHub automation. 
@@ -42,13 +42,30 @@ A developer-focused CLI that bridges local git workflows and GitHub automation.
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/jonathon-chew/Thoth.git
-   cd Thoth 
+   git clone https://github.com/jonathon-chew/go-repoflow.git
+   cd go-repoflow 
    ```
 
 2. Compile the script:
 
-    `go build .`
+
+   ```bash
+    go build -o repoflow ./cmd/repoflow/
+   ```
+
+3. Install the script:
+
+    ```bash
+   go install`
+   ```
+
+OR
+
+1. Go install
+
+    ```bash
+    go install github.com/jonathon-chew/go-repoflow/cmd/rf@latest
+    ```
 
 ## 📂 Output
 
@@ -61,6 +78,7 @@ This is inspired by the project here: https://github.com/tsoding/snitch
 ## 📜 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
 ### 🖌️ Attribution
 
 The Go Gopher was originally designed by [Renee French](https://reneefrench.blogspot.com/).  

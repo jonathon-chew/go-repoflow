@@ -1,4 +1,4 @@
-module github.com/jonathon-chew/Thoth
+module github.com/jonathon-chew/go-repoflow
 
 go 1.24.3
 

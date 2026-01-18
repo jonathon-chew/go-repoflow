@@ -256,7 +256,7 @@ func Make_GitLab_Issue(title, description string) error {
 	newGitlabRequest.Title = title
 	newGitlabRequest.Description = description
 
-	GitlabCredentials, err := GenericGitRequest()
+	GitlabCredentials, err := genericGitRequest()
 	if err != nil {
 		return err
 	}

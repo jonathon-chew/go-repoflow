@@ -8,9 +8,9 @@ import (
 	"slices"
 	"strings"
 
-	utils "github.com/jonathon-chew/Thoth/Utils"
-	"github.com/jonathon-chew/Thoth/cmd"
-	"github.com/jonathon-chew/Thoth/git"
+	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
+	cmd "github.com/jonathon-chew/go-repoflow/internal/cli"
+	"github.com/jonathon-chew/go-repoflow/pkg/git"
 )
 
 func main() {

@@ -158,6 +158,6 @@ func heatCharMD(count int) string {
 	case count < 10: //5-9 commits in a day
 		return wrapString("&", "*", "*")
 	default: // 10 or more commits in a day
-		return wrapString("x", "**", "**")
+		return wrapString("X", "**", "**")
 	}
 }
