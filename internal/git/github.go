@@ -3,7 +3,6 @@ package git
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -123,7 +122,8 @@ func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
 	}
 
 	if len(ResponseInstance) == 0 {
-		return ResponseInstance, errors.New("no GitHub issues found")
+		// return ResponseInstance, errors.New("no GitHub issues found")
+		return ResponseInstance, nil
 	}
 
 	if req.StatusCode != http.StatusOK {

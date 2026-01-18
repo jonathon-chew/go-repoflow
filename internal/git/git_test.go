@@ -22,7 +22,7 @@ func TestRemoteURL(t *testing.T) {
 func TestFindGitFolder(t *testing.T) {
 	t.Log("Testing GetGitTag")
 
-	os.Chdir("../")
+	os.Chdir("../../")
 
 	if FindGitFolder() {
 		t.Log("Successfully found a git folder")
@@ -45,12 +45,12 @@ func TestGitTag(t *testing.T) {
 func TestHelpVersionMatchesLatestGitTag(t *testing.T) {
 	t.Log("Testing whether the help function version matches the latest git tag")
 
-	_, ErrFindingFile := os.Stat("./cmd/cmd.go")
+	_, ErrFindingFile := os.Stat("./internal/cli/cli.go")
 	if ErrFindingFile != nil {
 		t.Error(aphrodite.ReturnError("[Error]: Could not find the file"))
 	}
 
-	fileContentsBytes, err := os.ReadFile("./cmd/cmd.go")
+	fileContentsBytes, err := os.ReadFile("./internal/cli/cli.go")
 	if err != nil {
 		t.Error(aphrodite.ReturnError(fmt.Sprintf("There was an error opening the file %s", err)))
 		return

@@ -10,7 +10,7 @@ import (
 
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 	cmd "github.com/jonathon-chew/go-repoflow/internal/cli"
-	"github.com/jonathon-chew/go-repoflow/pkg/git"
+	"github.com/jonathon-chew/go-repoflow/internal/git"
 )
 
 func main() {
@@ -54,6 +54,11 @@ func main() {
 			fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
 			return
 		}
+	}
+
+	if len(listOfGithubIssues) == 0 {
+		fmt.Println("There were no github issues to be found")
+		return
 	}
 
 	// Get the number of existing issues

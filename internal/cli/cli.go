@@ -9,7 +9,7 @@ import (
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
-	"github.com/jonathon-chew/go-repoflow/pkg/git"
+	"github.com/jonathon-chew/go-repoflow/internal/git"
 )
 
 func CLI(CommandLineArguments []string) error {
@@ -110,7 +110,7 @@ func CLI(CommandLineArguments []string) error {
 			return nil
 
 		case "--version", "-version", "-v":
-			fmt.Printf("v0.7.1\n")
+			fmt.Printf("v0.7.6\n")
 
 		case "--help", "-help", "-h":
 
