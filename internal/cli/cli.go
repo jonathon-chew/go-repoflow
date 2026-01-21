@@ -42,7 +42,7 @@ func CLI(CommandLineArguments []string) error {
 			git.CloneAllPublicRepos()
 			return nil
 
-		case "--get", "-get", "-g":
+		case "--get", "-get", "-g", "--list", "-list", "-l":
 			returned, err := git.ListGithubIssues(true)
 			if err != nil && errors.Is(err, NoIssues) {
 				aphrodite.PrintWarning("no GitHub issues found")
