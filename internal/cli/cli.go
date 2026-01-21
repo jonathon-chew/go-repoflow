@@ -19,6 +19,8 @@ func CLI(CommandLineArguments []string) error {
 
 	for index, command := range CommandLineArguments {
 		switch command {
+		default:
+			aphrodite.PrintError(command + " is not recognised")
 		case "--commit-calendar", "--cc", "-cc":
 			var option string
 			if len(CommandLineArguments) > index+1 {
