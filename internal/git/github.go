@@ -3,6 +3,7 @@ package git
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -76,6 +77,59 @@ type Repo struct {
 
 type User struct {
 	Public_repos int `json:"public_repos"`
+}
+
+type RepoInformation struct {
+	Forks_count       int `json:"forks_count"`
+	Forks             int `json:"forks"`
+	Stargazers_count  int `json:"stargazers_count"`
+	Watchers_count    int `json:"watchers_count"`
+	Open_issues_count int `json:"open_issues_count"`
+}
+
+func GetRepoStats() (RepoInformation, error) {
+
+	var RepoInformation RepoInformation
+
+	GitCredentials, err := genericGitRequest()
+	if err != nil {
+		return RepoInformation, err
+	}
+
+	request, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/repos/%s/%s", GitCredentials.Owner, GitCredentials.Repo), nil)
+	if err != nil {
+		return RepoInformation, err
+	}
+
+	request.Header.Set("Accept", "application/vnd.github+json")
+	request.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	request.Header.Set("Authorization", fmt.Sprintf("token %s", GitCredentials.Token))
+
+	client := http.Client{}
+
+	req, err := client.Do(request)
+	if err != nil {
+		return RepoInformation, err
+	}
+
+	defer req.Body.Close()
+
+	responseBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		return RepoInformation, err
+	}
+
+	// fmt.Printf("Repsonse Body: %s\n\n", string(responseBody))
+
+	if err := json.Unmarshal(responseBody, &RepoInformation); err != nil {
+		return RepoInformation, fmt.Errorf("error unmarshalling response: %w", err)
+	}
+
+	if req.StatusCode != http.StatusOK {
+		return RepoInformation, fmt.Errorf("GitHub API error: %s", req.Status)
+	}
+
+	return RepoInformation, nil
 }
 
 // LIST GIT ISSUES
@@ -191,6 +245,60 @@ func MakeGithubIssue(TITLE, BODY string) error {
 	fmt.Printf("The response was: %s, %s\n", req.Status, HTTPStatusResponseMeanings[req.Status])
 
 	return nil
+}
+
+// MAKE A GIT REQUEST
+func genericGitRequest() (Credentials, error) {
+	remoteOrigin, err := GetRemoteOrigin()
+	var credentials Credentials
+	if err != nil {
+		fmt.Printf("Unable to get the remote origin\n")
+		return credentials, err
+	}
+
+	if strings.Contains(remoteOrigin, "github") {
+
+		gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
+		gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://github.com/", ""), "/")
+
+		credentials.Owner = gitDetails[0]
+		credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
+		credentials.Token = os.Getenv("GH_PERSONAL_TOKEN")
+
+		if credentials.Token == "" {
+			_, VarExists := os.LookupEnv("GH_PERSONAL_TOKEN")
+			if VarExists {
+				return credentials, errors.New("GH_PERSONAL_TOKEN is empty")
+			} else {
+				return credentials, errors.New("no GH_PERSONAL_TOKEN in the environment")
+			}
+		}
+
+		return credentials, nil
+
+	} else if strings.Contains(remoteOrigin, "gitlab") {
+
+		gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
+		gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://gitlab.", ""), "/")
+
+		credentials.Owner = gitDetails[0] // check this still applies for gitlab - as i'm not sure it does, this might need to be a git call
+		credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
+		credentials.Token = os.Getenv("GL_PERSONAL_TOKEN")
+
+		if credentials.Token == "" {
+			_, VarExists := os.LookupEnv("GL_PERSONAL_TOKEN")
+			if VarExists {
+				return credentials, errors.New("GL_PERSONAL_TOKEN is empty")
+			} else {
+				return credentials, errors.New("no GL_PERSONAL_TOKEN in the environment")
+			}
+		}
+
+		return credentials, nil
+
+	} else {
+		return credentials, fmt.Errorf("the remote origin is not github/gitlab, and the ability to create issues for %s is not currently implimented", remoteOrigin)
+	}
 }
 
 // REMOVE GIT ISSUES

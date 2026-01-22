@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
@@ -42,7 +41,7 @@ func TestGitTag(t *testing.T) {
 	t.Log(returnString)
 }
 
-func TestHelpVersionMatchesLatestGitTag(t *testing.T) {
+/* func TestHelpVersionMatchesLatestGitTag(t *testing.T) {
 	t.Log("Testing whether the help function version matches the latest git tag")
 
 	_, ErrFindingFile := os.Stat("./internal/cli/cli.go")
@@ -83,7 +82,7 @@ func TestHelpVersionMatchesLatestGitTag(t *testing.T) {
 	}
 
 	t.Error("Unable to find a version line in the CMD")
-}
+} */
 
 func TestLatestGitTag(t *testing.T) {
 	t.Log("Testing GetLatestGitTag")

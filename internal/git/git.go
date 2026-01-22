@@ -304,60 +304,6 @@ func NewGitTag(argument string) error {
 	return nil
 }
 
-// MAKE A GIT REQUEST
-func genericGitRequest() (Credentials, error) {
-	remoteOrigin, err := GetRemoteOrigin()
-	var credentials Credentials
-	if err != nil {
-		fmt.Printf("Unable to get the remote origin\n")
-		return credentials, err
-	}
-
-	if strings.Contains(remoteOrigin, "github") {
-
-		gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
-		gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://github.com/", ""), "/")
-
-		credentials.Owner = gitDetails[0]
-		credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
-		credentials.Token = os.Getenv("GH_PERSONAL_TOKEN")
-
-		if credentials.Token == "" {
-			_, VarExists := os.LookupEnv("GH_PERSONAL_TOKEN")
-			if VarExists {
-				return credentials, errors.New("GH_PERSONAL_TOKEN is empty")
-			} else {
-				return credentials, errors.New("no GH_PERSONAL_TOKEN in the environment")
-			}
-		}
-
-		return credentials, nil
-
-	} else if strings.Contains(remoteOrigin, "gitlab") {
-
-		gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
-		gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://gitlab.", ""), "/")
-
-		credentials.Owner = gitDetails[0] // check this still applies for gitlab - as i'm not sure it does, this might need to be a git call
-		credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
-		credentials.Token = os.Getenv("GL_PERSONAL_TOKEN")
-
-		if credentials.Token == "" {
-			_, VarExists := os.LookupEnv("GL_PERSONAL_TOKEN")
-			if VarExists {
-				return credentials, errors.New("GL_PERSONAL_TOKEN is empty")
-			} else {
-				return credentials, errors.New("no GL_PERSONAL_TOKEN in the environment")
-			}
-		}
-
-		return credentials, nil
-
-	} else {
-		return credentials, fmt.Errorf("the remote origin is not github/gitlab, and the ability to create issues for %s is not currently implimented", remoteOrigin)
-	}
-}
-
 // Entry is the folder that you would like to check if their is an update to git in it.
 // Only does it in the root directory, if recusively going into folders it won't return false positives
 // The only time would be a submodule

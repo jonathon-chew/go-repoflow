@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
@@ -21,6 +22,14 @@ func CLI(CommandLineArguments []string) error {
 		switch command {
 		default:
 			aphrodite.PrintError(command + " is not recognised")
+		case "--repo-stats", "-rs":
+			RepoStats, ErrGettingRepoStats := git.GetRepoStats()
+			if ErrGettingRepoStats != nil {
+				return ErrGettingRepoStats
+			}
+
+			aphrodite.PrintInfo("Fork count: " + strconv.Itoa(RepoStats.Forks_count) + " Open Issue Count: " + strconv.Itoa(RepoStats.Open_issues_count) + " Stargazer's Count: " + strconv.Itoa(RepoStats.Stargazers_count) + " Watchers Count: " + strconv.Itoa(RepoStats.Watchers_count) + "\n")
+
 		case "--commit-calendar", "--cc", "-cc":
 			var option string
 			if len(CommandLineArguments) > index+1 {
