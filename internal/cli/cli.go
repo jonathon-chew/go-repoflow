@@ -21,7 +21,9 @@ func CLI(CommandLineArguments []string) error {
 	for index, command := range CommandLineArguments {
 		switch command {
 		default:
-			aphrodite.PrintError(command + " is not recognised")
+			if command != "minor" && command != "major" && command != "patch"{
+				aphrodite.PrintError(command + " is not recognised")
+			}
 		case "--repo-stats", "-rs":
 			RepoStats, ErrGettingRepoStats := git.GetRepoStats()
 			if ErrGettingRepoStats != nil {

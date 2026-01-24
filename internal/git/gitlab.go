@@ -3,9 +3,12 @@ package git
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 )
 
 type Create_Gitlab_Issue struct {
@@ -250,13 +253,35 @@ func (c Create_Gitlab_Issue) Create(title, description string) error {
 	return nil
 }
 
+func getGitlabCredentials(remoteOrigin string, credentials Credentials) (Credentials, error) {
+	gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
+	gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://gitlab.", ""), "/")
+
+	credentials.Owner = gitDetails[0] // check this still applies for gitlab - as i'm not sure it does, this might need to be a git call
+	credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
+	credentials.Token = os.Getenv("GL_PERSONAL_TOKEN")
+
+	if credentials.Token == "" {
+		_, VarExists := os.LookupEnv("GL_PERSONAL_TOKEN")
+		if VarExists {
+			return credentials, errors.New("GL_PERSONAL_TOKEN is empty")
+		} else {
+			return credentials, errors.New("no GL_PERSONAL_TOKEN in the environment")
+		}
+	}
+
+	return credentials, nil
+}
+
 func Make_GitLab_Issue(title, description string) error {
 	var newGitlabRequest Create_Gitlab_Issue
 
 	newGitlabRequest.Title = title
 	newGitlabRequest.Description = description
 
-	GitlabCredentials, err := genericGitRequest()
+	var GitlabCredentials Credentials
+
+	GitlabCredentials, err := getGitlabCredentials("gitlab.com/", GitlabCredentials)
 	if err != nil {
 		return err
 	}

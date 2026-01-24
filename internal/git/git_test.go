@@ -112,7 +112,7 @@ func TestListIssues(t *testing.T) {
 
 func TestGenericGit(t *testing.T) {
 	t.Logf("Testing GetRemoteOrigin")
-	GitCredentials, err := genericGitRequest()
+	GitCredentials, err := getGitCredentials()
 	if err != nil {
 		t.Fatal(aphrodite.ReturnError(fmt.Sprintf("Failed to get Git data: %v", err)))
 	}

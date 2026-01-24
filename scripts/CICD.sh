@@ -65,7 +65,11 @@ gitResponse=$(git status --porcelain)
     echo "${RED}There are uncommitted changes:${RESET}"
     echo " - Changes not staged for commit: $(git status --porcelain | grep '^ [MADRC]' | wc -l | tr -d ' ')"
     echo " - Changes staged for commit: $(git status --porcelain | grep '^[MADRC]' | wc -l | tr -d ' ')"
-    exit 1
+    # exit 1
+		echo "What would you like the commit message to be? \n"
+		read commitMessage
+		git add .
+		git commit -m $commitMessage
   fi
 fi
 

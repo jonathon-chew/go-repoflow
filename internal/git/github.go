@@ -16,6 +16,30 @@ import (
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 )
 
+type Limit struct {
+	Limit     int `json:"limit"`
+	Used      int `json:"used"`
+	Remaining int `json:"remaining"`
+	Reset     int `json:"reset"`
+}
+
+type RateLimit struct {
+	Core      Limit `json:"core"`
+	Resources struct {
+		Search                      Limit `json:"Search"`
+		Graphql                     Limit `json:"graphql"`
+		Integration_manifest        Limit `json:"integration_manifest"`
+		Source_import               Limit `json:"source_import"`
+		Code_scanning_upload        Limit `json:"code_scanning_upload"`
+		Actions_runner_registration Limit `json:"actions_runner_registration"`
+		Scim                        Limit `json:"scim"`
+		Dependency_snapshots        Limit `json:"dependency_snapshots"`
+		Code_search                 Limit `json:"code_search"`
+		Code_scanning_autofix       Limit `json:"code_scanning_autofix"`
+	}
+	Rate Limit `json:"rate"`
+}
+
 // GITHUB STRUCTS
 type Github_Assignee struct {
 	Login string `json:"login"`
@@ -87,46 +111,75 @@ type RepoInformation struct {
 	Open_issues_count int `json:"open_issues_count"`
 }
 
-func GetRepoStats() (RepoInformation, error) {
+func conntactGithub[T any](websiteUrl string, token string) (T, error) {
 
-	var RepoInformation RepoInformation
+	var v T
 
-	GitCredentials, err := genericGitRequest()
+	request, err := http.NewRequest("GET", websiteUrl, nil)
 	if err != nil {
-		return RepoInformation, err
-	}
-
-	request, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/repos/%s/%s", GitCredentials.Owner, GitCredentials.Repo), nil)
-	if err != nil {
-		return RepoInformation, err
+		return v, err
 	}
 
 	request.Header.Set("Accept", "application/vnd.github+json")
 	request.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	request.Header.Set("Authorization", fmt.Sprintf("token %s", GitCredentials.Token))
+	request.Header.Set("Authorization", fmt.Sprintf("token %s", token))
 
 	client := http.Client{}
 
 	req, err := client.Do(request)
 	if err != nil {
-		return RepoInformation, err
+		return v, err
 	}
 
 	defer req.Body.Close()
 
 	responseBody, err := io.ReadAll(req.Body)
 	if err != nil {
-		return RepoInformation, err
+		return v, err
 	}
 
 	// fmt.Printf("Repsonse Body: %s\n\n", string(responseBody))
 
-	if err := json.Unmarshal(responseBody, &RepoInformation); err != nil {
-		return RepoInformation, fmt.Errorf("error unmarshalling response: %w", err)
+	if err := json.Unmarshal(responseBody, &v); err != nil {
+		return v, fmt.Errorf("error unmarshalling response: %w", err)
 	}
 
 	if req.StatusCode != http.StatusOK {
-		return RepoInformation, fmt.Errorf("GitHub API error: %s", req.Status)
+		return v, fmt.Errorf("GitHub API error: %s", req.Status)
+	}
+
+	return v, nil
+}
+
+func GetRateLimit() (RateLimit, error) {
+
+	var rateLimit RateLimit
+
+	GitCredentials, err := getGitCredentials()
+	if err != nil {
+		return rateLimit, err
+	}
+
+	RateLimit, ErrContactingGithub := conntactGithub[RateLimit]("https://api.github.com/rate_limit", GitCredentials.Token)
+	if ErrContactingGithub != nil {
+		return rateLimit, ErrContactingGithub
+	}
+
+	return RateLimit, nil
+}
+
+func GetRepoStats() (RepoInformation, error) {
+
+	var repoInformation RepoInformation
+
+	GitCredentials, err := getGitCredentials()
+	if err != nil {
+		return repoInformation, err
+	}
+
+	RepoInformation, ErrContactingGithub := conntactGithub[RepoInformation](fmt.Sprintf("https://api.github.com/repos/%s/%s", GitCredentials.Owner, GitCredentials.Repo), GitCredentials.Token)
+	if ErrContactingGithub != nil {
+		return RepoInformation, ErrContactingGithub
 	}
 
 	return RepoInformation, nil
@@ -134,10 +187,10 @@ func GetRepoStats() (RepoInformation, error) {
 
 // LIST GIT ISSUES
 func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
-
+	// "https://api.github.com/repos/%s/%s/issues?state=all"
 	var ResponseInstance []GithubIssueResponse
 
-	GitCredentials, err := genericGitRequest()
+	GitCredentials, err := getGitCredentials()
 	if err != nil {
 		return ResponseInstance, err
 	}
@@ -196,7 +249,7 @@ func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
 func MakeGithubIssue(TITLE, BODY string) error {
 
 	// Get the credentials required
-	GithubCredentials, err := genericGitRequest()
+	GithubCredentials, err := getGitCredentials()
 	if err != nil {
 		return err
 	}
@@ -247,10 +300,13 @@ func MakeGithubIssue(TITLE, BODY string) error {
 	return nil
 }
 
-// MAKE A GIT REQUEST
-func genericGitRequest() (Credentials, error) {
+// Get the github credentials based on the env variable for github, and the parsing of hte git remote
+func getGitCredentials() (Credentials, error) {
+
 	remoteOrigin, err := GetRemoteOrigin()
+
 	var credentials Credentials
+
 	if err != nil {
 		fmt.Printf("Unable to get the remote origin\n")
 		return credentials, err
@@ -271,26 +327,6 @@ func genericGitRequest() (Credentials, error) {
 				return credentials, errors.New("GH_PERSONAL_TOKEN is empty")
 			} else {
 				return credentials, errors.New("no GH_PERSONAL_TOKEN in the environment")
-			}
-		}
-
-		return credentials, nil
-
-	} else if strings.Contains(remoteOrigin, "gitlab") {
-
-		gitUrl := strings.ReplaceAll(remoteOrigin, ".git", "")
-		gitDetails := strings.Split(strings.ReplaceAll(gitUrl, "https://gitlab.", ""), "/")
-
-		credentials.Owner = gitDetails[0] // check this still applies for gitlab - as i'm not sure it does, this might need to be a git call
-		credentials.Repo = strings.Replace(gitDetails[1], "\n", "", -1)
-		credentials.Token = os.Getenv("GL_PERSONAL_TOKEN")
-
-		if credentials.Token == "" {
-			_, VarExists := os.LookupEnv("GL_PERSONAL_TOKEN")
-			if VarExists {
-				return credentials, errors.New("GL_PERSONAL_TOKEN is empty")
-			} else {
-				return credentials, errors.New("no GL_PERSONAL_TOKEN in the environment")
 			}
 		}
 
@@ -329,7 +365,7 @@ func CloseGithubIssue(closeIssue *GithubIssueResponse) error {
 	closeIssue.State_Reason = "completed"
 
 	// Get the credentials
-	GithubCredentials, err := genericGitRequest()
+	GithubCredentials, err := getGitCredentials()
 	if err != nil {
 		return err
 	}
