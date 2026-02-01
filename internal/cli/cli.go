@@ -11,7 +11,64 @@ import (
 	aphrodite "github.com/jonathon-chew/Aphrodite"
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 	"github.com/jonathon-chew/go-repoflow/internal/git"
+	"golang.org/x/term"
 )
+
+func ReducedMessage(issue git.GithubIssueResponse, index, width int) error {
+
+	var message string
+	minimumWidth := len(fmt.Sprintf("%d Title:  Body:  state: \n", index+1))
+
+	switch issue.State {
+	default:
+		if width > len(issue.Title)+len(issue.Status)+minimumWidth {
+			message = fmt.Sprintf("%d Title: %s state: %s\n", index+1, strings.TrimSpace(issue.Title), aphrodite.ReturnInfo(issue.State))
+		} else { //  len(issue.Title) > width
+			message = fmt.Sprintf("%d Title: %s\n", index+1, strings.TrimSpace(issue.Title))
+		}
+	case "open":
+		message = fmt.Sprintf("%d Title: %s Body: %s state: %s\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnInfo(issue.State))
+		if width >= len(message) {
+			fmt.Print(message)
+		} else {
+			if minimumWidth >= width { // error
+				return fmt.Errorf("[ERROR]: minimum width %d required is greater than the width of the terminal %d", minimumWidth, width)
+			} else {
+				// Check title len to check reduction of body could solve issue
+				if width > len(issue.Title)+len(issue.Status)+minimumWidth {
+					message = fmt.Sprintf("%d Title: %s state: %s\n", index+1, strings.TrimSpace(issue.Title), aphrodite.ReturnInfo(issue.State))
+				} else { //  len(issue.Title) > width
+					message = fmt.Sprintf("%d Title: %s\n", index+1, strings.TrimSpace(issue.Title))
+				}
+				// Check body length if just title?!
+				fmt.Print(message)
+			}
+		}
+		// fmt.Printf("______________\n")
+	case "closed":
+		message = fmt.Sprintf("%d Title: %s Body: %s state: %s\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnWarning(issue.State))
+
+		if width >= len(message) {
+			fmt.Print(message)
+		} else {
+			if minimumWidth >= width { // error
+				return fmt.Errorf("[ERROR]: minimum width %d required is greater than the width of the terminal %d", minimumWidth, width)
+			} else {
+				// Check title len to check reduction of body could solve issue
+				if width > len(issue.Title)+len(issue.Status)+minimumWidth {
+					message = fmt.Sprintf("%d Title: %s state: %s\n", index+1, strings.TrimSpace(issue.Title), aphrodite.ReturnWarning(issue.State))
+				} else { //  len(issue.Title) > width
+					message = fmt.Sprintf("%d Title: %s\n", index+1, strings.TrimSpace(issue.Title))
+				}
+				// Check body length if just title?!
+				fmt.Print(message)
+			}
+		}
+		// fmt.Printf("______________\n")
+	}
+
+	return nil
+}
 
 func CLI(CommandLineArguments []string) error {
 	// aphrodite.PrintColour("Cyan", "I have found additional command line arguments, switching to CLI mode\n")
@@ -21,7 +78,7 @@ func CLI(CommandLineArguments []string) error {
 	for index, command := range CommandLineArguments {
 		switch command {
 		default:
-			if command != "minor" && command != "major" && command != "patch"{
+			if command != "minor" && command != "major" && command != "patch" {
 				aphrodite.PrintError(command + " is not recognised")
 			}
 		case "--repo-stats", "-rs":
@@ -66,35 +123,70 @@ func CLI(CommandLineArguments []string) error {
 				return err
 			}
 
-			var closedFlag, openFlag bool = false, true
+			var closedFlag, openFlag, oneLineFlag bool = false, true, false
+			var width int
+			var ErrGettingTerminalDetails error
 			// Check for extra flags
 			if len(os.Args) > 2 {
 				for _, extraCommand := range os.Args[2:] {
 					switch extraCommand {
 					case "--closed", "-closed", "-c":
 						closedFlag = true
+						openFlag = false
 					case "--all", "-all", "-a":
 						openFlag = false
+					case "--oneline", "--one-line", "-ol":
+						oneLineFlag = true
+						width, _, ErrGettingTerminalDetails = term.GetSize(int(os.Stdout.Fd()))
+						if ErrGettingTerminalDetails != nil {
+							return ErrGettingTerminalDetails
+						}
 					}
 				}
 			}
 
 			for index, issue := range returned {
-				if closedFlag && issue.State == "closed" {
-					fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnWarning(issue.State))
-					fmt.Printf("______________\n")
-					continue
-				}
+				if oneLineFlag == false {
+					if closedFlag && issue.State == "closed" {
+						fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnWarning(issue.State))
+						fmt.Printf("______________\n")
+						continue
+					}
 
-				if openFlag && issue.State == "open" {
-					fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnInfo(issue.State))
-					fmt.Printf("______________\n")
-					continue
-				}
+					if openFlag && issue.State == "open" {
+						fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, aphrodite.ReturnInfo(issue.State))
+						fmt.Printf("______________\n")
+						continue
+					}
 
-				if !closedFlag && !openFlag {
-					fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, issue.State)
-					fmt.Printf("______________\n")
+					if !closedFlag && !openFlag {
+						fmt.Printf("%d The issue title is:\n%s\nThe body is: %s\nThe status is: %s\n\n", index+1, strings.TrimSpace(issue.Title), issue.Body, issue.State)
+						fmt.Printf("______________\n")
+					}
+				} else {
+					if closedFlag && issue.State == "closed" {
+						ErrMakingReducedMessage := ReducedMessage(issue, index, width)
+						if ErrMakingReducedMessage != nil {
+							return ErrMakingReducedMessage
+						}
+						continue
+					}
+
+					if openFlag && issue.State == "open" {
+						ErrMakingReducedMessage := ReducedMessage(issue, index, width)
+						if ErrMakingReducedMessage != nil {
+							return ErrMakingReducedMessage
+						}
+						continue
+					}
+
+					if !closedFlag && !openFlag {
+						ErrMakingReducedMessage := ReducedMessage(issue, index, width)
+						if ErrMakingReducedMessage != nil {
+							return ErrMakingReducedMessage
+						}
+						continue
+					}
 				}
 			}
 

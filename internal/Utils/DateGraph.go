@@ -12,6 +12,8 @@ import (
 
 type CommitMap map[string]int
 
+var ansiRE = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
 // Step 3: Render basic ASCII heatmap
 func RenderDateGraph(commits CommitMap, option string) {
 	now := time.Now()
@@ -73,8 +75,6 @@ func RenderDateGraph(commits CommitMap, option string) {
 		}
 	}
 }
-
-var ansiRE = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 
 func visibleWidth(s string) int {
 	// Remove ANSI escape codes, then count runes
