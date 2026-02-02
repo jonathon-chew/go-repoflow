@@ -215,7 +215,7 @@ func CLI(CommandLineArguments []string) error {
 			return nil
 
 		case "--version", "-version", "-v":
-			fmt.Printf("v0.7.7\n")
+			fmt.Printf("v0.7.14\n")
 
 		case "--help", "-help", "-h":
 
@@ -251,6 +251,9 @@ func CLI(CommandLineArguments []string) error {
 
 			aphrodite.PrintBold("cyan", "Clone\n")
 			aphrodite.PrintColour("Green", "Clone all public repos into a temporary directory\n\n")
+
+			aphrodite.PrintBold("cyan", "RepoStats")
+			aphrodite.PrintColour("Green", "Get the repo stats from github Forks, Open Issues, Stargazer's, Watchers\n\n")
 
 		case "--tags", "-tags", "-t", "--tag", "-tag":
 			version, ErrGetLatestTag := git.GetLatestTag()
