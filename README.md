@@ -6,7 +6,7 @@
 A developer-focused CLI that bridges local git workflows and GitHub automation. 
 
 ## 🚀 Features
-
+re
 - Finds all the TODO lines in the current folder
 - Finds all the open issues in your github - using git remote
 ![go-repoflow oneline demo](./docs/images/oneline.gif)
@@ -14,7 +14,7 @@ A developer-focused CLI that bridges local git workflows and GitHub automation.
     - If it is not on GitHub in will add a issue number to the start of the todo line
     - If it is on GitHub it will ignore the issue 
 - Visualize commit activity across all git repositories in subdirectories, aggregated into a single terminal calendar view.
-![go-repoflow commit calendar demo](./docs/images/commitcalendar.gifc)
+![go-repoflow commit calendar demo](./docs/images/commitcalendar.gif)
 - Tag managment, create, list, and increment semantic version tags with minimal friction.
 - Instantly open the remote repository in your browser (GitHub supported) for pull requests and issue URLs.
 - Clone all public repositories for a given GitHub user or organization into a temporary workspace.
