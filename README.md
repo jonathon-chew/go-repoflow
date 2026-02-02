@@ -1,6 +1,6 @@
 # go-repoflow (Go)
 <p align="center">
-<img width="400" src="doc/images/go-repoflow.png" alt="Mascot/Icon" title="Mascot/Icon" />
+<img width="400" src="docs/images/go-repoflow.png" alt="Mascot/Icon" title="Mascot/Icon" />
 </p>
 
 A developer-focused CLI that bridges local git workflows and GitHub automation. 
