@@ -55,6 +55,10 @@ type Github_Issue struct {
 }
 
 type Github_Label struct {
+	Owner        string
+	Repo         string
+	Issue_number string
+	Labels       []string
 }
 
 type GithubIssueResponse struct {
@@ -109,6 +113,18 @@ type RepoInformation struct {
 	Stargazers_count  int `json:"stargazers_count"`
 	Watchers_count    int `json:"watchers_count"`
 	Open_issues_count int `json:"open_issues_count"`
+}
+
+var Github_Labels = []string{
+	"Bug",
+	"Documentation",
+	"Duplicate",
+	"Enhancement",
+	"Good_first_issue",
+	"Help_wanted",
+	"Invalid",
+	"Question",
+	"Wontfix",
 }
 
 func conntactGithub[T any](websiteUrl string, token string) (T, error) {
@@ -246,7 +262,7 @@ func ListGithubIssues(passedFromCLI bool) ([]GithubIssueResponse, error) {
 	return ResponseInstance, nil
 }
 
-func MakeGithubIssue(TITLE, BODY string) error {
+func MakeGithubIssue(TITLE, BODY string, GithubLabels []string) error {
 
 	// Get the credentials required
 	GithubCredentials, err := getGitCredentials()
@@ -258,6 +274,12 @@ func MakeGithubIssue(TITLE, BODY string) error {
 	issue := Github_Issue{
 		Title: strings.TrimSpace(TITLE),
 		Body:  BODY,
+	}
+
+	if len(GithubLabels) != 0 {
+		for _, each_label := range GithubLabels {
+			issue.Label = append(issue.Label, each_label)
+		}
 	}
 
 	// Convert the struct into JSON using the tags and Marshal

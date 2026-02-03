@@ -194,19 +194,35 @@ func CLI(CommandLineArguments []string) error {
 
 		case "--set", "-set", "-s":
 			var IssueTitle, IssueBody string
+			var IssueLabel []string
+
 			if CommandLineArguments[index+1] == "title" || CommandLineArguments[index+1] == "--title" || CommandLineArguments[index+1] == "-title" || CommandLineArguments[index+1] == "-t" {
 				IssueTitle = CommandLineArguments[index+2]
 			} else {
 				return errors.New("could not find a title flag proceeding the set command")
 			}
 
-			if CommandLineArguments[index+3] == "body" || CommandLineArguments[index+3] == "--body" || CommandLineArguments[index+3] == "-body" || CommandLineArguments[index+3] == "-b" {
-				IssueBody = CommandLineArguments[index+4]
+			if len(CommandLineArguments) < index+4 {
+				return errors.New("could not find a body flag or text proceeding the set command")
 			} else {
-				return errors.New("could not find a body flag proceeding the set command")
+				if CommandLineArguments[index+3] == "body" || CommandLineArguments[index+3] == "--body" || CommandLineArguments[index+3] == "-body" || CommandLineArguments[index+3] == "-b" {
+					IssueBody = CommandLineArguments[index+4]
+				} else {
+					return errors.New("could not find a body flag proceeding the set command")
+				}
 			}
 
-			makeError := git.MakeGithubIssue(IssueTitle, IssueBody)
+			if len(CommandLineArguments) < index+6 {
+				IssueLabel = []string{}
+			} else {
+				if CommandLineArguments[index+5] == "label" || CommandLineArguments[index+5] == "--label" || CommandLineArguments[index+5] == "-label" || CommandLineArguments[index+5] == "-l" {
+					IssueLabel = append(IssueLabel, CommandLineArguments[index+6])
+				} else {
+					return errors.New("could not find a tag flag proceeding the set command")
+				}
+			}
+
+			makeError := git.MakeGithubIssue(IssueTitle, IssueBody, IssueLabel)
 			if makeError != nil {
 				fmt.Println(makeError)
 				return makeError

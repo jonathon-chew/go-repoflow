@@ -127,7 +127,7 @@ func main() {
 				CurrentNumberOfIssues += 1
 
 				// Check whether the issue already exists...
-				git.MakeGithubIssue(line, fmt.Sprintf("This is from file %s on line %d\n", fileName.Name(), lineNumber))
+				git.MakeGithubIssue(line, fmt.Sprintf("This is from file %s on line %d\n", fileName.Name(), lineNumber), []string{"Bug"})
 
 				// Conditional if something has been updated, some actions needs to happen outside of the loop
 				updatedFile, foundNewTODO = true, true
