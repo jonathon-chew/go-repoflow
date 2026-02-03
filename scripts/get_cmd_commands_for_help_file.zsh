@@ -2,4 +2,4 @@
 
 # Copy to clipboard the arguments that can be found in the cmd file in order to help build out the help function
 grep "case" internal/cli/cli.go \
-  | sed -E 's/.*case[[:space:]]"([^"]*)".*/aphrodite.PrintBold("cyan", "\1")/' 
+  | sed -E 's/.*case[[:space:]]"([^"]*)".*/aphrodite.PrintBold("cyan", "\1")/' | sort
