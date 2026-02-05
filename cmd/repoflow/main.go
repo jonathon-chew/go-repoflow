@@ -9,19 +9,19 @@ import (
 	"strings"
 
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
-	cmd "github.com/jonathon-chew/go-repoflow/internal/cli"
+	"github.com/jonathon-chew/go-repoflow/internal/cli"
 	"github.com/jonathon-chew/go-repoflow/internal/git"
 )
 
 func main() {
 
-	// Check if there are arguments have been input - if so run through the cmd module
+	// Check if there are arguments have been input - if so run through the cli module
 	if len(os.Args[1:]) >= 1 {
-		ErrProcessingCmd := cmd.CLI(os.Args[1:])
-		if ErrProcessingCmd != nil {
+		ErrProcessingcli := cli.CLI(os.Args[1:])
+		if ErrProcessingcli != nil {
 
 			// Print that there was an issue and the command passed in
-			fmt.Printf("Error parsing the command line argument, %v\n", ErrProcessingCmd)
+			fmt.Printf("Error parsing the command line argument, %v\n", ErrProcessingcli)
 
 			// Return with a bad status code to allow this to be checked in other programmes whether it was succesfully even understood!
 			os.Exit(1)
