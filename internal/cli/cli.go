@@ -79,7 +79,7 @@ func CLI(CommandLineArguments []string) error {
 	for index, command := range CommandLineArguments {
 		switch command {
 		default:
-			if command != "minor" && command != "major" && command != "patch" {
+			if command != "minor" && command != "major" && command != "patch" && command != "true" {
 				aphrodite.PrintError(command + " is not recognised")
 			}
 		case "--repo-stats", "-rs":
