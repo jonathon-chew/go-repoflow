@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 	"github.com/jonathon-chew/go-repoflow/pkg/git"
+	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
+
 	"golang.org/x/term"
 )
 

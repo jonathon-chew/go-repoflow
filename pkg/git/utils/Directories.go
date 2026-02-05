@@ -1,4 +1,4 @@
-package utils
+package git_utils
 
 import (
 	"fmt"

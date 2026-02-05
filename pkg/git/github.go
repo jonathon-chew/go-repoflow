@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
+	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
 )
 
 type Limit struct {
