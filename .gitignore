@@ -7,4 +7,4 @@ repoflow
 internal/git/Github_Docs/
 internal/git/Giblab_Docs/
 pkg/git/Github_Docs/
-internal/git/Gitlab_Docs/
+pkg/git/Gitlab_Docs/
