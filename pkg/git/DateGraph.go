@@ -1,4 +1,4 @@
-package utils
+package git
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ import (
 type CommitMap map[string]int
 
 var ansiRE = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func wrapString(word, wrapS, wrapE string) string {
+	return wrapS + word + wrapE
+}
 
 // Step 3: Render basic ASCII heatmap
 func RenderDateGraph(commits CommitMap, option string) {

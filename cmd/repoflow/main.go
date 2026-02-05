@@ -10,7 +10,7 @@ import (
 
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
 	"github.com/jonathon-chew/go-repoflow/internal/cli"
-	"github.com/jonathon-chew/go-repoflow/internal/git"
+	"github.com/jonathon-chew/go-repoflow/pkg/git"
 )
 
 func main() {

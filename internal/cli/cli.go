@@ -10,7 +10,7 @@ import (
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
 	utils "github.com/jonathon-chew/go-repoflow/internal/Utils"
-	"github.com/jonathon-chew/go-repoflow/internal/git"
+	"github.com/jonathon-chew/go-repoflow/pkg/git"
 	"golang.org/x/term"
 )
 

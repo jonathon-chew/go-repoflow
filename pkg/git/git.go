@@ -357,7 +357,7 @@ func MakeCommitMap(option string) {
 	repos := utils.FindGitRepos(root)
 	var totalCount int
 
-	totalCommits := make(utils.CommitMap)
+	totalCommits := make(CommitMap)
 	for _, repo := range repos {
 		// fmt.Println("Scanning:", repo)
 		commits := getCommitDates(repo)
@@ -368,10 +368,10 @@ func MakeCommitMap(option string) {
 	}
 
 	aphrodite.PrintInfo("Total Count: " + strconv.Itoa(totalCount) + "\n")
-	utils.RenderDateGraph(totalCommits, option)
+	RenderDateGraph(totalCommits, option)
 }
 
-func getCommitDates(repo string) utils.CommitMap {
+func getCommitDates(repo string) CommitMap {
 	cmd := exec.Command("git", "log", "--pretty=format:%ad", "--date=short")
 	cmd.Dir = repo
 	out, err := cmd.Output()
@@ -379,7 +379,7 @@ func getCommitDates(repo string) utils.CommitMap {
 		fmt.Println("Error reading commits from", repo, err)
 		return nil
 	}
-	commits := make(utils.CommitMap)
+	commits := make(CommitMap)
 	scanner := bufio.NewScanner(strings.NewReader(string(out)))
 	for scanner.Scan() {
 		date := scanner.Text()
