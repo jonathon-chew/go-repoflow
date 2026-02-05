@@ -195,7 +195,7 @@ func GetLatestTag() (string, error) {
 	return latestVersion, nil
 }
 
-func makeTag(newTag string) error {
+func makeTag(newTag string, force bool) error {
 	cmd := exec.Command("git", "tag", newTag, "-m", "Release Version: "+strings.ReplaceAll(newTag, "v", ""))
 
 	var out bytes.Buffer
@@ -215,9 +215,14 @@ func makeTag(newTag string) error {
 	aphrodite.PrintBold("Cyan", "Do you want to push the new tag to git?\n")
 
 	var userChoicePushToGit string
-	_, ErrGettingUserChioce := fmt.Scan(&userChoicePushToGit)
-	if ErrGettingUserChioce != nil {
-		return ErrGettingUserChioce
+
+	if force {
+		userChoicePushToGit = "y"
+	} else {
+		_, ErrGettingUserChioce := fmt.Scan(&userChoicePushToGit)
+		if ErrGettingUserChioce != nil {
+			return ErrGettingUserChioce
+		}
 	}
 
 	if userChoicePushToGit == "y" || userChoicePushToGit == "Y" || userChoicePushToGit == "yes" || userChoicePushToGit == "Yes" || userChoicePushToGit == "YES" {
@@ -234,14 +239,14 @@ func makeTag(newTag string) error {
 	return nil
 }
 
-func NewGitTag(argument string) error {
+func NewGitTag(argument string, force bool) error {
 	version, ErrGetLatestTag := GetLatestTag()
 	if ErrGetLatestTag != nil {
 		return ErrGetLatestTag
 	}
 
 	if version == "" {
-		ErrMakingTag := makeTag("v0.1.0")
+		ErrMakingTag := makeTag("v0.1.0", force)
 		if ErrMakingTag != nil {
 			return ErrMakingTag
 		}
@@ -296,7 +301,7 @@ func NewGitTag(argument string) error {
 		return errors.New(argument + " was not recognised as a valid command")
 	}
 
-	ErrMakingTag := makeTag(newTag)
+	ErrMakingTag := makeTag(newTag, force)
 	if ErrMakingTag != nil {
 		return ErrMakingTag
 	}

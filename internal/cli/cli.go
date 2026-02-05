@@ -247,12 +247,20 @@ func CLI(CommandLineArguments []string) error {
 
 		case "--increment-tag", "-increment-tag", "-i", "--incrementtag", "-incrementtag":
 			var argument string
+			var force bool
 			if len(CommandLineArguments) > index+1 {
 				argument = CommandLineArguments[index+1]
 			} else {
 				argument = ""
 			}
-			ErrMakingNewTag := git.NewGitTag(argument)
+
+			if len(CommandLineArguments) > index+2 {
+				if strings.ToLower(CommandLineArguments[index+2]) == "true" || strings.ToLower(CommandLineArguments[index+2]) == "t" {
+					force = true
+				}
+			}
+
+			ErrMakingNewTag := git.NewGitTag(argument, force)
 			if ErrMakingNewTag != nil {
 				return ErrMakingNewTag
 			}
