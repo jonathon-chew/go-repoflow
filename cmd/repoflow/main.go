@@ -13,7 +13,7 @@ import (
 	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
 )
 
-func main() {
+func MAIN() int {
 
 	// Check if there are arguments have been input - if so run through the cli module
 	if len(os.Args[1:]) >= 1 {
@@ -27,7 +27,7 @@ func main() {
 			os.Exit(1)
 		} else {
 			// If there is no error exit the main function - this stops the deafult behaviour from writing to the file
-			return
+			return 1
 		}
 	}
 	// CHECK to see if their is a git folder
@@ -52,13 +52,13 @@ func main() {
 	if githubErr != nil {
 		if errors.Is(githubErr, fmt.Errorf("there were no github issues")) {
 			fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
-			return
+			return 1
 		}
 	}
 
 	if len(listOfGithubIssues) == 0 {
 		fmt.Println("There were no github issues to be found")
-		return
+		return 1
 	}
 
 	// Get the number of existing issues
@@ -102,7 +102,7 @@ func main() {
 		// Look for to dos in the file
 		file, err := os.Open(filePath)
 		if err != nil {
-			return
+			return 1
 		}
 
 		var lineNumber int
@@ -151,7 +151,7 @@ func main() {
 
 		if err := scanner.Err(); err != nil {
 			fmt.Println("Error reading file: ", err)
-			return
+			return 1
 		}
 
 		// Write modified content back to the file
@@ -161,7 +161,7 @@ func main() {
 			err = os.WriteFile(filePath, []byte(strings.Join(fileLine, "\n")), 0644)
 			if err != nil {
 				fmt.Println("Error writing file:", err)
-				return
+				return 1
 			}
 		}
 	}
@@ -169,4 +169,10 @@ func main() {
 	if !foundNewTODO {
 		fmt.Println("No new todo found in any file in this directory")
 	}
+
+	return 0
+}
+
+func main() {
+	os.Exit(MAIN())
 }

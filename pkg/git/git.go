@@ -212,13 +212,12 @@ func makeTag(newTag string, force bool) error {
 
 	aphrodite.PrintInfo(fmt.Sprintf("New latest tag:%s\n", newTag))
 
-	aphrodite.PrintBold("Cyan", "Do you want to push the new tag to git?\n")
-
 	var userChoicePushToGit string
 
 	if force {
 		userChoicePushToGit = "y"
 	} else {
+		aphrodite.PrintBold("Cyan", "Do you want to push the new tag to git?\n")
 		_, ErrGettingUserChioce := fmt.Scan(&userChoicePushToGit)
 		if ErrGettingUserChioce != nil {
 			return ErrGettingUserChioce
