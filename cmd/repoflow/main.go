@@ -27,7 +27,7 @@ func MAIN() int {
 			os.Exit(1)
 		} else {
 			// If there is no error exit the main function - this stops the deafult behaviour from writing to the file
-			return 1
+			return 0
 		}
 	}
 	// CHECK to see if their is a git folder

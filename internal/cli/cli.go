@@ -255,7 +255,7 @@ func CLI(CommandLineArguments []string) error {
 			}
 
 			if len(CommandLineArguments) > index+2 {
-				if strings.ToLower(CommandLineArguments[index+2]) == "true" || strings.ToLower(CommandLineArguments[index+2]) == "t" {
+				if strings.ToLower(CommandLineArguments[index+2]) == "true" || strings.ToLower(CommandLineArguments[index+2]) == "t" || strings.ToLower(CommandLineArguments[index+2]) == "force" || strings.ToLower(CommandLineArguments[index+2]) == "f" {
 					force = true
 				}
 			}
