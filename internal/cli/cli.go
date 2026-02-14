@@ -76,19 +76,25 @@ func CLI(CommandLineArguments []string) error {
 
 	var NoIssues error = errors.New("no GitHub issues found")
 
-	for index, command := range CommandLineArguments {
+	// for index, command := range CommandLineArguments {
+	for index := 0; index < len(CommandLineArguments); index++ {
+		command := CommandLineArguments[index]
+
 		switch command {
 		default:
-			if command != "minor" && command != "major" && command != "patch" && command != "true" {
-				aphrodite.PrintError(command + " is not recognised")
-			}
+			aphrodite.PrintError(command + " is not recognised")
 		case "--repo-stats", "-rs":
 			RepoStats, ErrGettingRepoStats := git.GetRepoStats()
 			if ErrGettingRepoStats != nil {
 				return ErrGettingRepoStats
 			}
 
-			aphrodite.PrintInfo("Fork count: " + strconv.Itoa(RepoStats.Forks_count) + " Open Issue Count: " + strconv.Itoa(RepoStats.Open_issues_count) + " Stargazer's Count: " + strconv.Itoa(RepoStats.Stargazers_count) + " Watchers Count: " + strconv.Itoa(RepoStats.Watchers_count) + "\n")
+			/* 			aphrodite.PrintInfo("Fork count: " + strconv.Itoa(RepoStats.Forks_count) + " \nOpen Issue Count: " + strconv.Itoa(RepoStats.Open_issues_count) + " \nStargazer's Count: " + strconv.Itoa(RepoStats.Stargazers_count) + "\nWatchers Count: " + strconv.Itoa(RepoStats.Watchers_count) + "\n") */
+
+			aphrodite.PrintInfo("Fork count: " + strconv.Itoa(RepoStats.Forks_count) + " \n" +
+				"Open Issue Count: " + strconv.Itoa(RepoStats.Open_issues_count) + " \n" +
+				"Stargazer's Count: " + strconv.Itoa(RepoStats.Stargazers_count) + "\n" +
+				"Watchers Count: " + strconv.Itoa(RepoStats.Watchers_count) + "\n")
 
 		case "--commit-calendar", "--cc", "-cc":
 			var option string
@@ -199,6 +205,7 @@ func CLI(CommandLineArguments []string) error {
 
 			if CommandLineArguments[index+1] == "title" || CommandLineArguments[index+1] == "--title" || CommandLineArguments[index+1] == "-title" || CommandLineArguments[index+1] == "-t" {
 				IssueTitle = CommandLineArguments[index+2]
+				index += 2
 			} else {
 				return errors.New("could not find a title flag proceeding the set command")
 			}
@@ -208,6 +215,7 @@ func CLI(CommandLineArguments []string) error {
 			} else {
 				if CommandLineArguments[index+3] == "body" || CommandLineArguments[index+3] == "--body" || CommandLineArguments[index+3] == "-body" || CommandLineArguments[index+3] == "-b" {
 					IssueBody = CommandLineArguments[index+4]
+					index += 2
 				} else {
 					return errors.New("could not find a body flag proceeding the set command")
 				}
@@ -218,6 +226,7 @@ func CLI(CommandLineArguments []string) error {
 			} else {
 				if CommandLineArguments[index+5] == "label" || CommandLineArguments[index+5] == "--label" || CommandLineArguments[index+5] == "-label" || CommandLineArguments[index+5] == "-l" {
 					IssueLabel = append(IssueLabel, CommandLineArguments[index+6])
+					index += 2
 				} else {
 					return errors.New("could not find a tag flag proceeding the set command")
 				}
@@ -257,6 +266,7 @@ func CLI(CommandLineArguments []string) error {
 			if len(CommandLineArguments) > index+2 {
 				if strings.ToLower(CommandLineArguments[index+2]) == "true" || strings.ToLower(CommandLineArguments[index+2]) == "t" || strings.ToLower(CommandLineArguments[index+2]) == "force" || strings.ToLower(CommandLineArguments[index+2]) == "f" {
 					force = true
+					index += 2
 				}
 			}
 
