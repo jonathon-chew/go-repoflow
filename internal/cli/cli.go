@@ -130,7 +130,7 @@ func CLI(CommandLineArguments []string) error {
 				return err
 			}
 
-			var closedFlag, openFlag, oneLineFlag bool = false, true, false
+			var closedFlag, openFlag, oneLineFlag, modifyFile bool = false, true, false, false
 			var width int
 			var ErrGettingTerminalDetails error
 			// Check for extra flags
@@ -148,8 +148,16 @@ func CLI(CommandLineArguments []string) error {
 						if ErrGettingTerminalDetails != nil {
 							return ErrGettingTerminalDetails
 						}
+					case "--local", "-local", "-l":
+						modifyFile = false
 					}
 				}
+			}
+
+			if !modifyFile {
+				git.ProcessTodosInRepo(modifyFile)
+				index++
+				continue
 			}
 
 			for index, issue := range returned {

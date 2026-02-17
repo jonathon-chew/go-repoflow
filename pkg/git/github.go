@@ -1,6 +1,7 @@
 package git
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -10,9 +11,11 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 
+	aphrodite "github.com/jonathon-chew/Aphrodite"
 	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
 )
 
@@ -320,6 +323,164 @@ func MakeGithubIssue(TITLE, BODY string, GithubLabels []string) error {
 	fmt.Printf("The response was: %s, %s\n", req.Status, HTTPStatusResponseMeanings[req.Status])
 
 	return nil
+}
+
+// ProcessTodosInRepo scans the repository for TODO comments, creates GitHub issues
+// for new TODOs, and optionally removes TODO lines whose corresponding issues
+// have been closed.
+func ProcessTodosInRepo(modifyFile bool) int {
+	// CHECK to see if there is a git folder
+	// Initialise the known files to ignore
+	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore"}
+	unwantedExtentions := []string{".app", ".exe", ".elf", ".md"}
+	fileList := utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
+
+	if !FindGitFolder() {
+		return 1
+	}
+
+	// Check there is an origin, and exit if not
+	_, remoteOriginErr := GetRemoteOrigin()
+	if remoteOriginErr != nil {
+		fmt.Printf("[ERROR]: %s\n", remoteOriginErr)
+		return 1
+	}
+
+	// Get a list of all current issues
+	listOfGithubIssues, githubErr := ListGithubIssues(false)
+	if githubErr != nil {
+		if errors.Is(githubErr, fmt.Errorf("there were no github issues")) {
+			fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
+			return 1
+		}
+	}
+
+	// Get the number of existing issues
+	CurrentNumberOfIssues := len(listOfGithubIssues)
+
+	var foundNewTODO bool
+	for _, fileName := range fileList {
+		// Keep going straight away if it's a directory
+		if fileName.IsDir || !strings.Contains(fileName.Name, ".") {
+			continue
+		}
+
+		// Get the lines of the file
+		var fileLine []string
+
+		// Set the file name
+		filePath := fileName.FullPath
+
+		// Make sure it's not one of the known unwanted files to edit
+		if slices.Contains(unwantedFiles, filePath) {
+			continue
+		}
+
+		// Set up variables to be used to check through everything that's already in place
+		var unwantedExtention bool
+		var updatedFile bool
+
+		// ignore binary files
+		for _, extension := range unwantedExtentions {
+			if strings.Contains(filePath, extension) {
+				unwantedExtention = true
+				break
+			}
+		}
+
+		if unwantedExtention {
+			continue
+		}
+
+		// Look for to dos in the file
+		file, err := os.Open(filePath)
+		if err != nil {
+			log.Println(aphrodite.ReturnError("Error opening file: " + err.Error()))
+			continue
+		}
+		defer file.Close()
+
+		var lineNumber int
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			lineNumber++
+			line := scanner.Text()
+
+			// This is adding a number to the start of the todo as a way to keep track and act as a guard against duplicating issues
+			if strings.Contains(line, "TODO: ") && !strings.Contains(line, ") TODO") {
+
+				// Find the with the TODO in it
+				replaceString := fmt.Sprintf("(#%d) TODO", CurrentNumberOfIssues+1)
+
+				// Replace the issue with the replace string which now has a number in it
+				line = strings.Replace(line, "TODO", replaceString, 1)
+
+				// Increment the number of current issues - for the next time this needs to be used
+				CurrentNumberOfIssues++
+
+				if modifyFile {
+					// Print this to the screen
+					fmt.Printf("I would like to make a github issue for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name, lineNumber)
+
+					// Check whether the issue already exists...
+					MakeGithubIssue(line, fmt.Sprintf("This is from file %s on line %d\n", fileName.Name, lineNumber), []string{"Bug"})
+
+					// Conditional if something has been updated, some actions needs to happen outside of the loop
+					updatedFile, foundNewTODO = true, true
+				} else {
+					fmt.Printf("The title of the todo is %s\nThe location is: %s on line %d\n\n", strings.TrimSpace(line), fileName.Name, lineNumber)
+				}
+
+			} else if strings.Contains(line, "TODO: ") && strings.Contains(line, ") TODO") {
+
+				if modifyFile {
+					// This finds OLD TODOs that have already had a GitHub issue created for them.
+					// Try to close the corresponding GitHub issue and, if successful, remove the line.
+					removed, removeError := RemoveLineDueToGithubIssue(line, listOfGithubIssues)
+					if removeError != nil {
+						log.Println(aphrodite.ReturnError("Error closing GitHub issue: " + removeError.Error()))
+					}
+					if removed && removeError == nil {
+						// The issue was successfully closed; remove the TODO from the code.
+						line = ""
+						updatedFile = true
+					}
+
+					fmt.Printf("I would like to remove the line for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name, lineNumber)
+				} else {
+					fmt.Printf("The title of the todo I would like to remove but not modify the file is %s\nThe location is: %s on line %d\n\n", strings.TrimSpace(line), fileName.Name, lineNumber)
+				}
+
+			}
+
+			if modifyFile {
+				// Regardless of whether a line has changed or not, add it into the list of lines to write back in
+				fileLine = append(fileLine, line)
+			}
+		}
+
+		if err := scanner.Err(); err != nil {
+			fmt.Println("Error reading file: ", err)
+			return 1
+		}
+
+		// Write modified content back to the file
+		if updatedFile && modifyFile {
+
+			// Write the result of the parsing of the file to the file again
+			err = os.WriteFile(filePath, []byte(strings.Join(fileLine, "\n")), 0644)
+			if err != nil {
+				fmt.Println("Error writing file:", err)
+				return 1
+			}
+		}
+	}
+
+	if !foundNewTODO {
+		fmt.Println("No new todo found in any file in this directory")
+	}
+
+	return 0
 }
 
 // Get the github credentials based on the env variable for github, and the parsing of hte git remote
