@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"slices"
 	"strings"
 
+	aphrodite "github.com/jonathon-chew/Aphrodite"
 	"github.com/jonathon-chew/go-repoflow/internal/cli"
 	"github.com/jonathon-chew/go-repoflow/pkg/git"
 	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
@@ -34,7 +36,7 @@ func MAIN() int {
 	// Initilaise the known files to ignore!
 	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore"}
 	unwantedExtentions := []string{".app", ".exe", ".elf", ".md"}
-	fileList := utils.FindFilesInCurrentDirectory()
+	fileList := utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
 
 	if !git.FindGitFolder() {
 		os.Exit(1)
@@ -56,19 +58,18 @@ func MAIN() int {
 		}
 	}
 
-	if len(listOfGithubIssues) == 0 {
-		fmt.Println("There were no github issues to be found")
-		return 1
-	}
+	// if len(listOfGithubIssues) == 0 {
+	// 	fmt.Println("There were no github issues to be found")
+	// 	return 1
+	// }
 
 	// Get the number of existing issues
 	CurrentNumberOfIssues := len(listOfGithubIssues)
 
 	var foundNewTODO bool = false
 	for _, fileName := range fileList {
-
 		// Keep going straight away if it's a directory
-		if fileName.IsDir() || !strings.Contains(fileName.Name(), ".") {
+		if fileName.IsDir || !strings.Contains(fileName.Name, ".") {
 			continue
 		}
 
@@ -76,7 +77,7 @@ func MAIN() int {
 		var fileLine []string
 
 		// Set the file name
-		var filePath = fileName.Name()
+		var filePath = fileName.FullPath
 
 		// Make sure it's not one of the known unwanted files to edit
 		if slices.Contains(unwantedFiles, filePath) {
@@ -102,7 +103,9 @@ func MAIN() int {
 		// Look for to dos in the file
 		file, err := os.Open(filePath)
 		if err != nil {
-			return 1
+			log.Println(aphrodite.ReturnError("Error opening file: " + err.Error()))
+			continue
+			// return 1
 		}
 
 		var lineNumber int
@@ -121,13 +124,13 @@ func MAIN() int {
 				line = strings.Replace(line, "TODO", replaceString, 1)
 
 				// Print this to the screen
-				fmt.Printf("I would like to make a github issue for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name(), lineNumber)
+				fmt.Printf("I would like to make a github issue for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name, lineNumber)
 
 				// Incriment the number of current issues - for the next time this needs to be used
 				CurrentNumberOfIssues += 1
 
 				// Check whether the issue already exists...
-				git.MakeGithubIssue(line, fmt.Sprintf("This is from file %s on line %d\n", fileName.Name(), lineNumber), []string{"Bug"})
+				git.MakeGithubIssue(line, fmt.Sprintf("This is from file %s on line %d\n", fileName.Name, lineNumber), []string{"Bug"})
 
 				// Conditional if something has been updated, some actions needs to happen outside of the loop
 				updatedFile, foundNewTODO = true, true

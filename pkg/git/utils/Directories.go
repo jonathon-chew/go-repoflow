@@ -30,6 +30,41 @@ func FindFilesInCurrentDirectory() (fileList []os.FileInfo) {
 	return fileList
 }
 
+type FileInfo struct {
+	Path     string
+	IsDir    bool
+	Name     string
+	FullPath string
+}
+
+func FindAllFilesInCurrentDirectoryAndSubdirectories() []FileInfo {
+	fileList := []FileInfo{}
+	root, errGettingRoot := os.Getwd()
+	if errGettingRoot != nil {
+		log.Fatal(errGettingRoot)
+		return fileList
+	}
+
+	filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			return nil
+		}
+
+		fileList = append(fileList, FileInfo{
+			Path:     path,
+			IsDir:    d.IsDir(),
+			Name:     info.Name(),
+			FullPath: filepath.Join(root, path),
+		})
+		return nil
+	})
+	return fileList
+}
+
 func MakeDirectoryList(fileList []os.FileInfo) []string {
 
 	// Initialise a list of the directories

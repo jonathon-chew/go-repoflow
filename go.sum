@@ -1,5 +1,5 @@
-github.com/jonathon-chew/Aphrodite v1.3.36 h1:NKYUqSw+KDXq8vtZ4TyXbOfmk4hZ4mtO1pSzppWLCgs=
-github.com/jonathon-chew/Aphrodite v1.3.36/go.mod h1:kpxi4K8ErePKTqzSFnJkzTglPF2UN/ayE0+3QowGyhA=
+github.com/jonathon-chew/Aphrodite v1.5.1 h1:SJXRcFfJB0lGmXOK3zTaRZ8ZOFXrzwA8jgiAMbFI/5I=
+github.com/jonathon-chew/Aphrodite v1.5.1/go.mod h1:tzCa06G5iPIelSpK6eVVwdCbGPDH+L3Uyf+HNzlKUIc=
 golang.org/x/sys v0.40.0 h1:DBZZqJ2Rkml6QMQsZywtnjnnGvHza6BTfYFWY9kjEWQ=
 golang.org/x/sys v0.40.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/term v0.39.0 h1:RclSuaJf32jOqZz74CkPA9qFuVTX7vhLlpfj/IGWlqY=
