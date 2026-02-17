@@ -130,7 +130,11 @@ func CLI(CommandLineArguments []string) error {
 				return err
 			}
 
-			var closedFlag, openFlag, oneLineFlag, modifyFile bool = false, true, false, false
+			// Flags controlling how issues/TODOs are displayed or processed.
+			// By default we show open issues from GitHub (modifyFile = true).
+			// Passing --local switches behaviour to operate only on local TODOs
+			// without modifying files or contacting GitHub.
+			var closedFlag, openFlag, oneLineFlag, modifyFile bool = false, true, false, true
 			var width int
 			var ErrGettingTerminalDetails error
 			// Check for extra flags

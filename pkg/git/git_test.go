@@ -119,3 +119,12 @@ func TestGenericGit(t *testing.T) {
 
 	t.Logf("Owner: %s, Repo: %s, Token: %s", GitCredentials.Owner, GitCredentials.Repo, GitCredentials.Token)
 }
+
+func TestProcessTodosInRepoDryRun(t *testing.T) {
+	t.Log("Testing ProcessTodosInRepo in dry-run mode (no file or GitHub modifications)")
+
+	exitCode := ProcessTodosInRepo(false)
+	if exitCode != 0 {
+		t.Errorf("ProcessTodosInRepo(false) returned non-zero exit code: %d", exitCode)
+	}
+}

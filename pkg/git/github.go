@@ -334,29 +334,34 @@ func ProcessTodosInRepo(modifyFile bool) int {
 	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore"}
 	unwantedExtentions := []string{".app", ".exe", ".elf", ".md"}
 	fileList := utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
+	listOfGithubIssues := []GithubIssueResponse{}
+	CurrentNumberOfIssues := 0
 
 	if !FindGitFolder() {
 		return 1
 	}
 
-	// Check there is an origin, and exit if not
-	_, remoteOriginErr := GetRemoteOrigin()
-	if remoteOriginErr != nil {
-		fmt.Printf("[ERROR]: %s\n", remoteOriginErr)
-		return 1
-	}
-
-	// Get a list of all current issues
-	listOfGithubIssues, githubErr := ListGithubIssues(false)
-	if githubErr != nil {
-		if errors.Is(githubErr, fmt.Errorf("there were no github issues")) {
-			fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
+	if modifyFile {
+		// Check there is an origin, and exit if not
+		_, remoteOriginErr := GetRemoteOrigin()
+		if remoteOriginErr != nil {
+			fmt.Printf("[ERROR]: %s\n", remoteOriginErr)
 			return 1
 		}
-	}
 
-	// Get the number of existing issues
-	CurrentNumberOfIssues := len(listOfGithubIssues)
+		// Get a list of all current issues
+		listOfGithubIssues, githubErr := ListGithubIssues(false)
+		if githubErr != nil {
+			if errors.Is(githubErr, fmt.Errorf("there were no github issues")) {
+				fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
+				return 1
+			}
+		}
+
+		// Get the number of existing issues
+		CurrentNumberOfIssues = len(listOfGithubIssues)
+
+	}
 
 	var foundNewTODO bool
 	for _, fileName := range fileList {
@@ -448,7 +453,7 @@ func ProcessTodosInRepo(modifyFile bool) int {
 
 					fmt.Printf("I would like to remove the line for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name, lineNumber)
 				} else {
-					fmt.Printf("The title of the todo I would like to remove but not modify the file is %s\nThe location is: %s on line %d\n\n", strings.TrimSpace(line), fileName.Name, lineNumber)
+					fmt.Printf("The title of the todo I am already tracking is in the file %s on line %d\n\n", fileName.Name, lineNumber)
 				}
 
 			}
