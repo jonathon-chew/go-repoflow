@@ -509,14 +509,10 @@ func ProcessTodosInRepo(modifyFile bool) int {
 	// After scanning all files, check for GitHub issues that no longer have corresponding TODOs
 	if modifyFile && len(listOfGithubIssues) > 0 {
 		for _, issue := range listOfGithubIssues {
-			aphrodite.PrintInfo("Issue is: " + strings.TrimSpace(issue.Title) + " (State: " + issue.State + ")\n")
-
 			// Only check open issues
 			_, seenInFile := todosFoundInFiles[issue.Title]
 			if issue.State == "open" && !seenInFile {
 				issueTitle := strings.TrimSpace(issue.Title)
-
-				log.Println(issue.Title + " not in todosFoundInFile")
 				// This issue doesn't have a corresponding TODO in the codebase anymore
 				fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
 
@@ -581,8 +577,6 @@ func getGitCredentials() (Credentials, error) {
 // REMOVE GIT ISSUES
 // (#2) TODO: Add the ability to remove to dos which have been closed on github
 func RemoveLineDueToGithubIssue(line string, listOfGithubIssues []GithubIssueResponse) (bool, error) {
-
-	log.Println("CHECKING LINE: ", line, " there are ", len(listOfGithubIssues), " to compare to.")
 
 	// Loop through the issues and compare to the line
 	for _, issue := range listOfGithubIssues {
