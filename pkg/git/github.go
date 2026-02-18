@@ -507,44 +507,28 @@ func ProcessTodosInRepo(modifyFile bool) int {
 	}
 
 	// After scanning all files, check for GitHub issues that no longer have corresponding TODOs
-	if modifyFile {
-		if len(listOfGithubIssues) > 0 {
-			for _, issue := range listOfGithubIssues {
-				aphrodite.PrintInfo("Issue is: " + strings.TrimSpace(issue.Title) + " (State: " + issue.State + ")\n")
-				// Only check open issues
-				if issue.State == "open" {
-					log.Print("THIS ISSUE IS OPEN: " + issue.State + " " + issue.Title)
-					issueTitle := strings.TrimSpace(issue.Title)
+	if modifyFile && len(listOfGithubIssues) > 0 {
+		for _, issue := range listOfGithubIssues {
+			aphrodite.PrintInfo("Issue is: " + strings.TrimSpace(issue.Title) + " (State: " + issue.State + ")\n")
 
-					_, seenInFile := todosFoundInFiles[issue.Title]
-					if !seenInFile {
-						log.Println(issue.Title + " not in todosFoundInFile")
-						// This issue doesn't have a corresponding TODO in the codebase anymore
-						fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
+			// Only check open issues
+			_, seenInFile := todosFoundInFiles[issue.Title]
+			if issue.State == "open" && !seenInFile {
+				issueTitle := strings.TrimSpace(issue.Title)
 
-						if err := CloseGithubIssue(&GithubIssueUpdate{
-							Title:        issueTitle,
-							State:        "closed",
-							State_Reason: "completed",
-							Assignee:     "jonathon-chew",
-							Number:       issue.Number,
-							Id:           issue.Id,
-						}); err != nil {
-							log.Println(aphrodite.ReturnError(fmt.Sprintf("Error closing GitHub issue #%d: %v", issue.Number, err)))
-						}
-					} else {
-						log.Println(issue.Title + " IS in todosFoundInFile")
-					}
-					// Check if this issue's title matches any TODO found in files
-					if !seenInFile {
-						/* // This issue doesn't have a corresponding TODO in the codebase anymore
-						fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
-						if err := CloseGithubIssue(&issue); err != nil {
-							log.Println(aphrodite.ReturnError(fmt.Sprintf("Error closing GitHub issue #%d: %v", issue.Number, err)))
-						} */
-					}
-				} else {
-					log.Println("Issue state is not open it is: /" + issue.State + "/")
+				log.Println(issue.Title + " not in todosFoundInFile")
+				// This issue doesn't have a corresponding TODO in the codebase anymore
+				fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
+
+				if err := CloseGithubIssue(&GithubIssueUpdate{
+					Title:        issueTitle,
+					State:        "closed",
+					State_Reason: "completed",
+					Assignee:     "jonathon-chew",
+					Number:       issue.Number,
+					Id:           issue.Id,
+				}); err != nil {
+					log.Println(aphrodite.ReturnError(fmt.Sprintf("Error closing GitHub issue #%d: %v", issue.Number, err)))
 				}
 			}
 		}
