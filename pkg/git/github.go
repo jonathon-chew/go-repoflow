@@ -99,6 +99,17 @@ type GithubIssueResponse struct {
 	Status             string            `json:"status"`
 }
 
+type GithubIssueUpdate struct {
+	Title        string   `json:"title,omitempty"`
+	Body         string   `json:"body,omitempty"`
+	State        string   `json:"state,omitempty"`
+	State_Reason string   `json:"state_reason,omitempty"`
+	Assignee     string   `json:"assignee,omitempty"`
+	Assignees    []string `json:"assignees,omitempty"`
+	Number       int      `json:"number"`
+	Id           int      `json:"id"`
+}
+
 type Repo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -331,7 +342,7 @@ func MakeGithubIssue(TITLE, BODY string, GithubLabels []string) error {
 func ProcessTodosInRepo(modifyFile bool) int {
 	// CHECK to see if there is a git folder
 	// Initialise the known files to ignore
-	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore"}
+	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore", "response.txt"}
 	unwantedExtentions := []string{".app", ".exe", ".elf", ".md"}
 	fileList := utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
 	listOfGithubIssues := []GithubIssueResponse{}
@@ -350,20 +361,25 @@ func ProcessTodosInRepo(modifyFile bool) int {
 		}
 
 		// Get a list of all current issues
-		listOfGithubIssues, githubErr := ListGithubIssues(false)
+		fresh, githubErr := ListGithubIssues(false)
 		if githubErr != nil {
 			if errors.Is(githubErr, fmt.Errorf("there were no github issues")) {
 				fmt.Printf("[ERROR]: There was an error getting issues: %v\n", githubErr)
 				return 1
+			} else {
+				log.Print(aphrodite.ReturnWarning(githubErr.Error() + "\n"))
 			}
 		}
 
 		// Get the number of existing issues
+		listOfGithubIssues = fresh
 		CurrentNumberOfIssues = len(listOfGithubIssues)
-
 	}
 
 	var foundNewTODO bool
+	// Track all TODO lines found in files (for checking if issues should be closed)
+	todosFoundInFiles := make(map[string]bool)
+
 	for _, fileName := range fileList {
 		// Keep going straight away if it's a directory
 		if fileName.IsDir || !strings.Contains(fileName.Name, ".") {
@@ -377,7 +393,7 @@ func ProcessTodosInRepo(modifyFile bool) int {
 		filePath := fileName.FullPath
 
 		// Make sure it's not one of the known unwanted files to edit
-		if slices.Contains(unwantedFiles, filePath) {
+		if slices.Contains(unwantedFiles, fileName.Name) {
 			continue
 		}
 
@@ -411,6 +427,10 @@ func ProcessTodosInRepo(modifyFile bool) int {
 			lineNumber++
 			line := scanner.Text()
 
+			// Track this TODO line for later comparison with GitHub issues
+			trimmedLine := strings.TrimSpace(line)
+			todosFoundInFiles[trimmedLine] = true
+
 			// This is adding a number to the start of the todo as a way to keep track and act as a guard against duplicating issues
 			if strings.Contains(line, "TODO: ") && !strings.Contains(line, ") TODO") {
 
@@ -437,6 +457,9 @@ func ProcessTodosInRepo(modifyFile bool) int {
 				}
 
 			} else if strings.Contains(line, "TODO: ") && strings.Contains(line, ") TODO") {
+				// Track this TODO line for later comparison with GitHub issues
+				trimmedLine := strings.TrimSpace(line)
+				todosFoundInFiles[trimmedLine] = true
 
 				if modifyFile {
 					// This finds OLD TODOs that have already had a GitHub issue created for them.
@@ -449,6 +472,8 @@ func ProcessTodosInRepo(modifyFile bool) int {
 						// The issue was successfully closed; remove the TODO from the code.
 						line = ""
 						updatedFile = true
+						// Remove from tracking since we're deleting it
+						delete(todosFoundInFiles, trimmedLine)
 					}
 
 					fmt.Printf("I would like to remove the line for: %s\nThe title is %s\nThe body is: %s on line %d\n", strings.TrimSpace(line), strings.TrimSpace(line), fileName.Name, lineNumber)
@@ -477,6 +502,50 @@ func ProcessTodosInRepo(modifyFile bool) int {
 			if err != nil {
 				fmt.Println("Error writing file:", err)
 				return 1
+			}
+		}
+	}
+
+	// After scanning all files, check for GitHub issues that no longer have corresponding TODOs
+	if modifyFile {
+		if len(listOfGithubIssues) > 0 {
+			for _, issue := range listOfGithubIssues {
+				aphrodite.PrintInfo("Issue is: " + strings.TrimSpace(issue.Title) + " (State: " + issue.State + ")\n")
+				// Only check open issues
+				if issue.State == "open" {
+					log.Print("THIS ISSUE IS OPEN: " + issue.State + " " + issue.Title)
+					issueTitle := strings.TrimSpace(issue.Title)
+
+					_, seenInFile := todosFoundInFiles[issue.Title]
+					if !seenInFile {
+						log.Println(issue.Title + " not in todosFoundInFile")
+						// This issue doesn't have a corresponding TODO in the codebase anymore
+						fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
+
+						if err := CloseGithubIssue(&GithubIssueUpdate{
+							Title:        issueTitle,
+							State:        "closed",
+							State_Reason: "completed",
+							Assignee:     "jonathon-chew",
+							Number:       issue.Number,
+							Id:           issue.Id,
+						}); err != nil {
+							log.Println(aphrodite.ReturnError(fmt.Sprintf("Error closing GitHub issue #%d: %v", issue.Number, err)))
+						}
+					} else {
+						log.Println(issue.Title + " IS in todosFoundInFile")
+					}
+					// Check if this issue's title matches any TODO found in files
+					if !seenInFile {
+						/* // This issue doesn't have a corresponding TODO in the codebase anymore
+						fmt.Printf("Closing GitHub issue #%d '%s' - TODO line no longer exists in codebase\n", issue.Number, issueTitle)
+						if err := CloseGithubIssue(&issue); err != nil {
+							log.Println(aphrodite.ReturnError(fmt.Sprintf("Error closing GitHub issue #%d: %v", issue.Number, err)))
+						} */
+					}
+				} else {
+					log.Println("Issue state is not open it is: /" + issue.State + "/")
+				}
 			}
 		}
 	}
@@ -527,16 +596,30 @@ func getGitCredentials() (Credentials, error) {
 
 // REMOVE GIT ISSUES
 // (#2) TODO: Add the ability to remove to dos which have been closed on github
-func RemoveLineDueToGithubIssue(line string, foundGithubIssues []GithubIssueResponse) (bool, error) {
+func RemoveLineDueToGithubIssue(line string, listOfGithubIssues []GithubIssueResponse) (bool, error) {
+
+	log.Println("CHECKING LINE: ", line, " there are ", len(listOfGithubIssues), " to compare to.")
 
 	// Loop through the issues and compare to the line
-	for _, issue := range foundGithubIssues {
-		if strings.Contains(strings.TrimSpace(line), issue.Title) {
-			err := CloseGithubIssue(&issue)
-			if err != nil {
-				return true, err // trying this out - as first half the of the function was "completed" successfully but the second half wasn't!
+	for _, issue := range listOfGithubIssues {
+		if issue.Status != "closed" {
+			// if strings.Contains(strings.TrimSpace(line), issue.Title) {
+			if strings.TrimSpace(line) == issue.Title {
+				log.Println(aphrodite.ReturnInfo("Found an issue to remove: " + issue.Title + "comparing to line: " + line))
+				err := CloseGithubIssue(&GithubIssueUpdate{
+					Title:        issue.Title,
+					State:        "closed",
+					State_Reason: "completed",
+					Assignee:     "jonathon-chew",
+					Number:       issue.Number,
+					Id:           issue.Id,
+				})
+				if err != nil {
+					log.Print(aphrodite.ReturnError("[ERROR]: closing github issue: " + err.Error() + "\n"))
+					return true, err // trying this out - as first half the of the function was "completed" successfully but the second half wasn't!
+				}
+				return true, nil
 			}
-			return true, nil
 		}
 	}
 
@@ -546,11 +629,9 @@ func RemoveLineDueToGithubIssue(line string, foundGithubIssues []GithubIssueResp
 
 // (#3) TODO: Add the ability to close issues on github which have been removed from the code base
 
-func CloseGithubIssue(closeIssue *GithubIssueResponse) error {
+func CloseGithubIssue(closeIssue *GithubIssueUpdate) error {
 
 	// Put together the JSON message required to close an issue
-	closeIssue.State = "closed"
-	closeIssue.State_Reason = "completed"
 
 	// Get the credentials
 	GithubCredentials, err := getGitCredentials()
@@ -566,6 +647,8 @@ func CloseGithubIssue(closeIssue *GithubIssueResponse) error {
 
 	// Convert the JSON into bytes
 	requestBody := bytes.NewBuffer(jsonData)
+
+	os.WriteFile("./to_send.json", requestBody.Bytes(), 0644)
 
 	// Write the request
 	request, err := http.NewRequest("PATCH", fmt.Sprintf("https://api.github.com/repos/%s/%s/issues/%d", GithubCredentials.Owner, GithubCredentials.Repo, closeIssue.Number), requestBody)
@@ -583,11 +666,19 @@ func CloseGithubIssue(closeIssue *GithubIssueResponse) error {
 	// Make the request
 	closeGithubIssueResponse, clientErr := client.Do(request)
 	if clientErr != nil {
-		fmt.Printf("The response from github was: %s\n", HTTPStatusResponseMeanings[closeGithubIssueResponse.Status])
+		fmt.Printf("The response from github was: %s for issue number: %v\n", HTTPStatusResponseMeanings[closeGithubIssueResponse.Status], closeIssue.Id)
 		return clientErr
 	}
 
-	fmt.Printf("The response from github was: %s\n", HTTPStatusResponseMeanings[closeGithubIssueResponse.Status])
+	fmt.Printf("The response from github was: %s %s\n", closeGithubIssueResponse.Status, HTTPStatusResponseMeanings[closeGithubIssueResponse.Status])
+
+	githubBodyResponse, errConvertingBody := io.ReadAll(closeGithubIssueResponse.Body)
+	if errConvertingBody != nil {
+		aphrodite.PrintError("[Error]: Converting body response to bytes")
+		return errConvertingBody
+	}
+
+	os.WriteFile(fmt.Sprintf("/Users/hunteradder626/Documents/Scripts/Git/Public/go-repoflow/github_response/%s.txt", strconv.Itoa(closeIssue.Id)), githubBodyResponse, 0644)
 
 	// Return if error?
 	return nil
@@ -672,7 +763,7 @@ func CloneAllPublicRepos() {
 
 			err := cmd.Run()
 			if err != nil {
-				log.Printf("Error: %s\n", stderr.String())
+				log.Printf("Error: %s\n", stderr.String()+"\n")
 				return
 			}
 
