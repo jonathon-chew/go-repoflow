@@ -83,6 +83,8 @@ func CLI(CommandLineArguments []string) error {
 		switch command {
 		default:
 			aphrodite.PrintError(command + " is not recognised")
+		case "--debug", "-debug", "-d":
+			continue
 		case "--repo-stats", "-rs":
 			RepoStats, ErrGettingRepoStats := git.GetRepoStats()
 			if ErrGettingRepoStats != nil {
