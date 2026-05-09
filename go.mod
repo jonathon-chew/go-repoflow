@@ -1,10 +1,10 @@
 module github.com/jonathon-chew/go-repoflow
 
-go 1.24.3
+go 1.25.0
 
 require (
-	github.com/jonathon-chew/Aphrodite v1.5.1
-	golang.org/x/term v0.39.0
+	github.com/jonathon-chew/Aphrodite v1.6.0
+	golang.org/x/term v0.43.0
 )
 
-require golang.org/x/sys v0.40.0 // indirect
+require golang.org/x/sys v0.44.0 // indirect
