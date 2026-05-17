@@ -3,28 +3,29 @@
 <img width="400" src="docs/images/go-repoflow.png" alt="Mascot/Icon" title="Mascot/Icon" />
 </p>
 
-A developer-focused CLI that bridges local git workflows and GitHub automation. 
+A developer-focused CLI that bridges local Git workflows and GitHub automation.
 
 ## 🚀 Features
-re
-- Finds all the TODO lines in the current folder
-- Finds all the open issues in your github - using git remote
+
+- Find TODO lines in the current folder
+- Find open GitHub issues using the configured remote
+- Check whether a TODO already exists on GitHub and annotate it when needed
+- Visualize commit activity across local git repositories in a terminal calendar view
+- Create, list, and increment semantic version tags
+- Open the remote repository in your browser for pull requests and issue URLs
+- Clone public repositories for a given GitHub user or organization into a temporary workspace
+- Scan subdirectories and report repositories with uncommitted or unpushed changes
+
+Demo images:
+
 ![go-repoflow oneline demo](./docs/images/oneline.gif)
-- Checks to see whether or not the issue is in github 
-    - If it is not on GitHub in will add a issue number to the start of the todo line
-    - If it is on GitHub it will ignore the issue 
-- Visualize commit activity across all git repositories in subdirectories, aggregated into a single terminal calendar view.
 ![go-repoflow commit calendar demo](./docs/images/commitcalendar.gif)
-- Tag managment, create, list, and increment semantic version tags with minimal friction.
-- Instantly open the remote repository in your browser (GitHub supported) for pull requests and issue URLs.
-- Clone all public repositories for a given GitHub user or organization into a temporary workspace.
-- Scan all subdirectories (one level deep) and report repositories with uncommitted or unpushed changes.
 
 ## 🛠️ Prerequisites
 
 - [Go](https://golang.org/dl/) installed (version 1.16+ recommended)
-- A github token for the repository with permission to read / edit issues 
-    - [Github Documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
+- A GitHub token with permission to read and edit issues
+  - [GitHub documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
 
 ## 📁 Setup
 
@@ -32,37 +33,35 @@ re
 
    ```bash
    git clone https://github.com/jonathon-chew/go-repoflow.git
-   cd go-repoflow 
+   cd go-repoflow
    ```
 
 2. Compile the script:
 
 
    ```bash
-    go build ./...
+   go build ./...
    ```
 
 3. Install the script:
 
-    ```bash
-   go install`
+   ```bash
+   go install ./...
    ```
 
-OR
+   Or install the command package directly:
 
-1. Go install
-
-    ```bash
-    go install github.com/jonathon-chew/go-repoflow/cmd/rf@latest
-    ```
+   ```bash
+   go install github.com/jonathon-chew/go-repoflow/cmd/rf@latest
+   ```
 
 ## 📂 Output
 
-This will make Github issues for you automatically and edit your codebase - just the todo line, to save the number of the issue for easily finding which issue is the right issue.
+This creates and manages GitHub issues for TODO lines in your codebase, helping you keep local notes and remote tracking in sync.
 
 ## 🧠 Notes
 
-This is inspired by the project here: https://github.com/tsoding/snitch
+This project is inspired by [snitch](https://github.com/tsoding/snitch).
 
 ## 📜 License
 
