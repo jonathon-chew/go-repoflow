@@ -262,7 +262,7 @@ func CLI(CommandLineArguments []string) error {
 			return nil
 
 		case "--tags", "-tags", "-t", "--tag", "-tag":
-			version, ErrGetLatestTag := git.GetLatestTag()
+			version, ErrGetLatestTag := git.GetLatestTag(false)
 			if ErrGetLatestTag != nil {
 				return ErrGetLatestTag
 			}

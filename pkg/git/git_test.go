@@ -87,7 +87,7 @@ func TestGitTag(t *testing.T) {
 func TestLatestGitTag(t *testing.T) {
 	t.Log("Testing GetLatestGitTag")
 
-	returnString, ErrGettingTags := GetLatestTag()
+	returnString, ErrGettingTags := GetLatestTag(false)
 	if ErrGettingTags != nil {
 		t.Error(ErrGettingTags)
 	}
@@ -127,4 +127,12 @@ func TestProcessTodosInRepoDryRun(t *testing.T) {
 	if exitCode != 0 {
 		t.Errorf("ProcessTodosInRepo(false) returned non-zero exit code: %d", exitCode)
 	}
+}
+
+func TestChangeLog(t *testing.T) {
+
+	t.Log("Testing making a change log")
+
+	MakeChangeLog("/Users/hunteradder626/Projects/Git/Public/go-repoflow/")
+
 }

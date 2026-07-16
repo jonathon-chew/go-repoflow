@@ -122,9 +122,9 @@ func getTags() (string, error) {
 	return versions, nil
 }
 
-func GetLatestTag() (string, error) {
+func GetLatestTag(checkForGitFolder bool) (string, error) {
 
-	if !FindGitFolder() {
+	if !FindGitFolder() && checkForGitFolder {
 		return "", fmt.Errorf("[Error]: Unable to find a git folder in the current directory")
 	}
 
@@ -239,7 +239,7 @@ func makeTag(newTag string, force bool) error {
 }
 
 func NewGitTag(argument string, force bool) error {
-	version, ErrGetLatestTag := GetLatestTag()
+	version, ErrGetLatestTag := GetLatestTag(false)
 	if ErrGetLatestTag != nil {
 		return ErrGetLatestTag
 	}
@@ -390,4 +390,73 @@ func getCommitDates(repo string) utils.CommitMap {
 		commits[date]++
 	}
 	return commits
+}
+
+func MakeChangeLog(repo string) {
+	// COMMAND := "git log --pretty=format:(%H) %d | %s"
+	cmd := exec.Command("git", "log", "--pretty=format:(%H) %D | %s")
+
+	cmd.Dir = repo
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error reading commits from", repo, err)
+		return
+	}
+
+	type LineEntry struct {
+		CommitHash   string
+		TagValue     string
+		Tag          string
+		CommitString string
+	}
+
+	commitHistory := []LineEntry{}
+	previousTag, err := GetLatestTag(false)
+	if err != nil {
+		fmt.Print("Unbale to get the latest tag")
+		return
+	}
+
+	tag := previousTag
+
+	scanner := bufio.NewScanner(strings.NewReader(string(out)))
+	for scanner.Scan() {
+		commit := scanner.Text()
+		splitCommitEntry := strings.SplitN(commit, "|", 2)
+
+		metaData := strings.SplitN(splitCommitEntry[0], " ", 3)
+
+		hash, tagValue := "", ""
+		if len(metaData) == 3 {
+			hash = metaData[0]
+			tagValue = metaData[1]
+			tag = metaData[2]
+
+			if tag != "" && strings.Contains(tag, "v") && strings.Contains(tag, ".") {
+				previousTag = tag
+			}
+		} else if len(metaData) == 1 {
+			hash = metaData[0]
+			tagValue = ""
+			tag = previousTag
+		}
+
+		commitHistory = append(commitHistory, LineEntry{
+			CommitHash:   hash,
+			TagValue:     tagValue,
+			Tag:          previousTag,
+			CommitString: splitCommitEntry[1],
+		})
+	}
+
+	for _, entry := range commitHistory {
+		//fmt.Printf("The tag is %v the hash is %v and the commiti has is %v\n\n", entry.Tag, entry.CommitHash, entry.CommitString)
+
+		if strings.Contains(entry.CommitString, ":") {
+			commitType := strings.SplitN(entry.CommitString, ":", 2)
+			fmt.Printf("Commit type is: %v and the tag is %v\n", commitType[0], entry.Tag)
+		} else {
+			fmt.Printf("No colon for commit %v\n", entry.CommitString)
+		}
+	}
 }
