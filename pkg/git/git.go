@@ -322,7 +322,8 @@ func CheckForGitUpdate(entry string) error {
 
 	// Fast repo check: is there a .git directory / file?
 	if _, err := os.Stat(filepath.Join(dirPath, ".git")); err != nil {
-		return errors.New("not a git folder") // not a git repo (or not accessible)
+		aphrodite.PrintError(fmt.Sprintf("%s not a git folder", dirPath)) // not a git repo (or not accessible)
+		return nil
 	}
 
 	cmd := exec.Command("git", "status", "--porcelain")
