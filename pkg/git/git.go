@@ -464,52 +464,82 @@ func MakeChangeLog(repo string) {
 
 	fileP, err := os.Create("./CHANGELOG.md")
 
-	var content string = `
-	# CHANGELOG
-	`
+	var content strings.Builder
+	content.WriteString("# CHANGELOG")
 
-	previousTag = tagList[0]
-	var eachTag string
+	// previousTag = tagList[0]
+	var eachTag strings.Builder
+	var news, updates, refactors, deletes, miscs []string //  []string
 
-	for _, eachEntry := range commitHistory {
+	for i, eachEntry := range commitHistory {
 
-		if !(eachEntry.Tag == previousTag) {
-			eachTag += fmt.Sprintf(`
-		## %s\n\n
-		`, eachEntry.Tag)
+		if i == 0 {
+			previousTag = eachEntry.Tag
 		}
 
-		commitType := strings.SplitN(eachEntry.CommitString, ":", 2)
+		if eachEntry.Tag != previousTag {
+			fmt.Fprintf(&eachTag, "\n\n\t## %s\n", eachEntry.Tag)
 
-		var news, updates, refactors, deletes []string // misc []string
+			// fmt.Fprintf(&eachTag, "\t\t### NEW\n\t\t%s\n\n\t\t### UPDATE\n\t\t%s\n\n\t\t### REFACTOR\n\t\t%s\n\n\t\t### DELETE\n\t\t%s\n\n\t\t### MISC\n\t\t%s", strings.Join(news, "\n\t\t"), strings.Join(updates, "\n\t\t"), strings.Join(refactors, "\n\t\t"), strings.Join(deletes, "\n\t\t"), strings.Join(miscs, "\n\t\t"))
 
-		switch commitType[0] {
+			if len(news) > 0 {
+				fmt.Fprintf(&eachTag, "\t\t### NEW\n\t\t%s", strings.Join(news, "\n\t\t"))
+			}
+
+			if len(updates) > 0 {
+				fmt.Fprintf(&eachTag, "\t\t### UPDATES\n\t\t%s", strings.Join(updates, "\n\t\t"))
+			}
+
+			if len(refactors) > 0 {
+				fmt.Fprintf(&eachTag, "\t\t### REFACTORS\n\t\t%s", strings.Join(refactors, "\n\t\t"))
+			}
+
+			if len(deletes) > 0 {
+				fmt.Fprintf(&eachTag, "\t\t### DELETES\n\t\t%s", strings.Join(deletes, "\n\t\t"))
+			}
+
+			if len(miscs) > 0 {
+				fmt.Fprintf(&eachTag, "\t\t### MISC\n\t\t%s", strings.Join(miscs, "\n\t\t"))
+			}
+
+			content.WriteString(eachTag.String())
+			news = []string{}
+			updates = []string{}
+			refactors = []string{}
+			deletes = []string{}
+			miscs = []string{}
+			previousTag = eachEntry.Tag
+
+			eachTag.Reset()
+		}
+
+		// fmt.Printf("each entry tag = %v previous tag = %v\n", eachEntry.Tag, previousTag)
+
+		var commitType, commitMessage string
+		if strings.Contains(eachEntry.CommitString, ":") {
+			temp_commit := strings.SplitN(eachEntry.CommitString, ":", 2)
+			commitType = temp_commit[0]
+			commitMessage = temp_commit[1]
+		} else {
+			commitType = ""
+			commitMessage = eachEntry.CommitString
+		}
+
+		// fmt.Printf("committype[0] is %v\n", commitType[0])
+
+		switch strings.TrimSpace(commitType) {
 		case "new":
-			news = append(news, commitType[1])
+			news = append(news, "1."+commitMessage)
 		case "update":
-			updates = append(updates, commitType[1])
+			updates = append(updates, "1."+commitMessage)
 		case "refactor":
-			refactors = append(refactors, commitType[1])
+			refactors = append(refactors, "1."+commitMessage)
 		case "delete":
-			deletes = append(deletes, commitType[1])
-			// case _:
-			// misc = append(misc, commitType[1])
+			deletes = append(deletes, "1."+commitMessage)
+		default:
+			miscs = append(miscs, "1."+commitMessage)
 		}
-
-		var eachTag string = fmt.Sprintf(`
-		### NEW
-		%s
-		### UPDATE
-		%s
-		### REFACTOR
-		%s
-		### DELETE
-		%s
-		### MISC
-	`, strings.Join(news, "\n"), strings.Join(updates, "\n"), strings.Join(refactors, "\n"), strings.Join(deletes, "\n"))
-
-		content += eachTag
 	}
 
-	os.WriteFile(fileP.Name(), []byte(content), os.ModeAppend)
+	os.WriteFile(fileP.Name(), []byte(content.String()), os.ModeAppend)
 }
