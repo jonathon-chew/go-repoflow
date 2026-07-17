@@ -480,8 +480,6 @@ func MakeChangeLog(repo string) {
 		if eachEntry.Tag != previousTag {
 			fmt.Fprintf(&eachTag, "\n\n\t## %s\n", eachEntry.Tag)
 
-			// fmt.Fprintf(&eachTag, "\t\t### NEW\n\t\t%s\n\n\t\t### UPDATE\n\t\t%s\n\n\t\t### REFACTOR\n\t\t%s\n\n\t\t### DELETE\n\t\t%s\n\n\t\t### MISC\n\t\t%s", strings.Join(news, "\n\t\t"), strings.Join(updates, "\n\t\t"), strings.Join(refactors, "\n\t\t"), strings.Join(deletes, "\n\t\t"), strings.Join(miscs, "\n\t\t"))
-
 			if len(news) > 0 {
 				fmt.Fprintf(&eachTag, "\t\t### NEW\n\t\t%s", strings.Join(news, "\n\t\t"))
 			}
