@@ -418,6 +418,7 @@ func MakeChangeLog(repo string) {
 	}
 
 	tag := previousTag
+	var tagList []string
 
 	scanner := bufio.NewScanner(strings.NewReader(string(out)))
 	for scanner.Scan() {
@@ -433,6 +434,7 @@ func MakeChangeLog(repo string) {
 			tag = metaData[2]
 
 			if tag != "" && strings.Contains(tag, "v") && strings.Contains(tag, ".") {
+				tagList = append(tagList, tag)
 				previousTag = tag
 			}
 		} else if len(metaData) == 1 {
@@ -459,4 +461,55 @@ func MakeChangeLog(repo string) {
 			fmt.Printf("No colon for commit %v\n", entry.CommitString)
 		}
 	}
+
+	fileP, err := os.Create("./CHANGELOG.md")
+
+	var content string = `
+	# CHANGELOG
+	`
+
+	previousTag = tagList[0]
+	var eachTag string
+
+	for _, eachEntry := range commitHistory {
+
+		if !(eachEntry.Tag == previousTag) {
+			eachTag += fmt.Sprintf(`
+		## %s\n\n
+		`, eachEntry.Tag)
+		}
+
+		commitType := strings.SplitN(eachEntry.CommitString, ":", 2)
+
+		var news, updates, refactors, deletes []string // misc []string
+
+		switch commitType[0] {
+		case "new":
+			news = append(news, commitType[1])
+		case "update":
+			updates = append(updates, commitType[1])
+		case "refactor":
+			refactors = append(refactors, commitType[1])
+		case "delete":
+			deletes = append(deletes, commitType[1])
+			// case _:
+			// misc = append(misc, commitType[1])
+		}
+
+		var eachTag string = fmt.Sprintf(`
+		### NEW
+		%s
+		### UPDATE
+		%s
+		### REFACTOR
+		%s
+		### DELETE
+		%s
+		### MISC
+	`, strings.Join(news, "\n"), strings.Join(updates, "\n"), strings.Join(refactors, "\n"), strings.Join(deletes, "\n"))
+
+		content += eachTag
+	}
+
+	os.WriteFile(fileP.Name(), []byte(content), os.ModeAppend)
 }
