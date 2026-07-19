@@ -122,9 +122,9 @@ func getTags() (string, error) {
 	return versions, nil
 }
 
-func GetLatestTag() (string, error) {
+func GetLatestTag(checkForGitFolder bool) (string, error) {
 
-	if !FindGitFolder() {
+	if !FindGitFolder() && checkForGitFolder {
 		return "", fmt.Errorf("[Error]: Unable to find a git folder in the current directory")
 	}
 
@@ -239,7 +239,7 @@ func makeTag(newTag string, force bool) error {
 }
 
 func NewGitTag(argument string, force bool) error {
-	version, ErrGetLatestTag := GetLatestTag()
+	version, ErrGetLatestTag := GetLatestTag(false)
 	if ErrGetLatestTag != nil {
 		return ErrGetLatestTag
 	}
@@ -391,4 +391,154 @@ func getCommitDates(repo string) utils.CommitMap {
 		commits[date]++
 	}
 	return commits
+}
+
+func MakeChangeLog(repo string) {
+	// COMMAND := "git log --pretty=format:(%H) %d | %s"
+	cmd := exec.Command("git", "log", "--pretty=format:(%H) %D | %s")
+
+	cmd.Dir = repo
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Error reading commits from", repo, err)
+		return
+	}
+
+	type LineEntry struct {
+		CommitHash   string
+		TagValue     string
+		Tag          string
+		CommitString string
+	}
+
+	commitHistory := []LineEntry{}
+	previousTag, err := GetLatestTag(false)
+	if err != nil {
+		fmt.Print("Unbale to get the latest tag")
+		return
+	}
+
+	tag := previousTag
+	var tagList []string
+
+	scanner := bufio.NewScanner(strings.NewReader(string(out)))
+	for scanner.Scan() {
+		commit := scanner.Text()
+		splitCommitEntry := strings.SplitN(commit, "|", 2)
+
+		metaData := strings.SplitN(splitCommitEntry[0], " ", 3)
+
+		hash, tagValue := "", ""
+		if len(metaData) == 3 {
+			hash = metaData[0]
+			tagValue = metaData[1]
+			tag = metaData[2]
+
+			if tag != "" && strings.Contains(tag, "v") && strings.Contains(tag, ".") {
+				tagList = append(tagList, tag)
+				previousTag = tag
+			}
+		} else if len(metaData) == 1 {
+			hash = metaData[0]
+			tagValue = ""
+			tag = previousTag
+		}
+
+		commitHistory = append(commitHistory, LineEntry{
+			CommitHash:   hash,
+			TagValue:     tagValue,
+			Tag:          previousTag,
+			CommitString: splitCommitEntry[1],
+		})
+	}
+
+	for _, entry := range commitHistory {
+		//fmt.Printf("The tag is %v the hash is %v and the commiti has is %v\n\n", entry.Tag, entry.CommitHash, entry.CommitString)
+
+		if strings.Contains(entry.CommitString, ":") {
+			commitType := strings.SplitN(entry.CommitString, ":", 2)
+			fmt.Printf("Commit type is: %v and the tag is %v\n", commitType[0], entry.Tag)
+		} else {
+			fmt.Printf("No colon for commit %v\n", entry.CommitString)
+		}
+	}
+
+	fileP, err := os.Create("./CHANGELOG.md")
+
+	var content strings.Builder
+	content.WriteString("# CHANGELOG")
+
+	// previousTag = tagList[0]
+	var eachTag strings.Builder
+	var news, updates, refactors, deletes, miscs []string //  []string
+
+	for i, eachEntry := range commitHistory {
+
+		if i == 0 {
+			previousTag = eachEntry.Tag
+		}
+
+		if eachEntry.Tag != previousTag {
+			fmt.Fprintf(&eachTag, "\n\n\t## %s\n", eachEntry.Tag)
+
+			if len(news) > 0 {
+				fmt.Fprintf(&eachTag, "\n\t\t### NEW\n\t\t%s", strings.Join(news, "\n\t\t"))
+			}
+
+			if len(updates) > 0 {
+				fmt.Fprintf(&eachTag, "\n\t\t### UPDATES\n\t\t%s", strings.Join(updates, "\n\t\t"))
+			}
+
+			if len(refactors) > 0 {
+				fmt.Fprintf(&eachTag, "\n\t\t### REFACTORS\n\t\t%s", strings.Join(refactors, "\n\t\t"))
+			}
+
+			if len(deletes) > 0 {
+				fmt.Fprintf(&eachTag, "\n\t\t### DELETES\n\t\t%s", strings.Join(deletes, "\n\t\t"))
+			}
+
+			if len(miscs) > 0 {
+				fmt.Fprintf(&eachTag, "\n\t\t### MISC\n\t\t%s", strings.Join(miscs, "\n\t\t"))
+			}
+
+			content.WriteString(eachTag.String())
+			news = []string{}
+			updates = []string{}
+			refactors = []string{}
+			deletes = []string{}
+			miscs = []string{}
+			previousTag = eachEntry.Tag
+
+			eachTag.Reset()
+		}
+
+		// fmt.Printf("each entry tag = %v previous tag = %v\n", eachEntry.Tag, previousTag)
+
+		var commitType, commitMessage string
+		if strings.Contains(eachEntry.CommitString, ":") {
+			temp_commit := strings.SplitN(eachEntry.CommitString, ":", 2)
+			commitType = temp_commit[0]
+			commitMessage = temp_commit[1]
+		} else {
+			commitType = ""
+			commitMessage = eachEntry.CommitString
+		}
+
+		// fmt.Printf("committype[0] is %v\n", commitType[0])
+
+		switch strings.TrimSpace(commitType) {
+		case "new":
+			news = append(news, "1."+commitMessage)
+		case "update":
+			updates = append(updates, "1."+commitMessage)
+		case "refactor":
+			refactors = append(refactors, "1."+commitMessage)
+		case "delete":
+			deletes = append(deletes, "1."+commitMessage)
+		default:
+			miscs = append(miscs, "1."+commitMessage)
+		}
+	}
+
+	os.WriteFile(fileP.Name(), []byte(content.String()), os.ModeAppend)
 }
