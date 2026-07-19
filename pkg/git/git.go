@@ -481,23 +481,23 @@ func MakeChangeLog(repo string) {
 			fmt.Fprintf(&eachTag, "\n\n\t## %s\n", eachEntry.Tag)
 
 			if len(news) > 0 {
-				fmt.Fprintf(&eachTag, "\t\t### NEW\n\t\t%s", strings.Join(news, "\n\t\t"))
+				fmt.Fprintf(&eachTag, "\n\t\t### NEW\n\t\t%s", strings.Join(news, "\n\t\t"))
 			}
 
 			if len(updates) > 0 {
-				fmt.Fprintf(&eachTag, "\t\t### UPDATES\n\t\t%s", strings.Join(updates, "\n\t\t"))
+				fmt.Fprintf(&eachTag, "\n\t\t### UPDATES\n\t\t%s", strings.Join(updates, "\n\t\t"))
 			}
 
 			if len(refactors) > 0 {
-				fmt.Fprintf(&eachTag, "\t\t### REFACTORS\n\t\t%s", strings.Join(refactors, "\n\t\t"))
+				fmt.Fprintf(&eachTag, "\n\t\t### REFACTORS\n\t\t%s", strings.Join(refactors, "\n\t\t"))
 			}
 
 			if len(deletes) > 0 {
-				fmt.Fprintf(&eachTag, "\t\t### DELETES\n\t\t%s", strings.Join(deletes, "\n\t\t"))
+				fmt.Fprintf(&eachTag, "\n\t\t### DELETES\n\t\t%s", strings.Join(deletes, "\n\t\t"))
 			}
 
 			if len(miscs) > 0 {
-				fmt.Fprintf(&eachTag, "\t\t### MISC\n\t\t%s", strings.Join(miscs, "\n\t\t"))
+				fmt.Fprintf(&eachTag, "\n\t\t### MISC\n\t\t%s", strings.Join(miscs, "\n\t\t"))
 			}
 
 			content.WriteString(eachTag.String())
