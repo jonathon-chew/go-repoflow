@@ -3,6 +3,7 @@
 	## v0.10.0 
 
 		### NEW
+		1. CLI command to access the new functionality
 		1. first implimentation of a written out change log
 		1. first implimnetation of writing it out to a file
 		### UPDATES
