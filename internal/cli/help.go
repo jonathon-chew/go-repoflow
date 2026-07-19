@@ -10,6 +10,10 @@ func help() {
 	aphrodite.PrintBold("cyan", "Check\n")
 	aphrodite.PrintColour("Green", "Check all folders 1 level deep to see if there are any updates required to push/pull\n\n")
 
+	aphrodite.PrintBold("cyan", "--Change-log\n")
+	aphrodite.PrintBold("cyan", "Change Log\n")
+	aphrodite.PrintColour("Green", "Write a change log for all changes and all versions\n\n")
+
 	aphrodite.PrintBold("cyan", "--clone\n")
 	aphrodite.PrintBold("cyan", "Clone\n")
 	aphrodite.PrintColour("Green", "Clone all public repos into a temporary directory\n\n")

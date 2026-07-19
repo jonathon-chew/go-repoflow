@@ -452,17 +452,6 @@ func MakeChangeLog(repo string) {
 		})
 	}
 
-	for _, entry := range commitHistory {
-		//fmt.Printf("The tag is %v the hash is %v and the commiti has is %v\n\n", entry.Tag, entry.CommitHash, entry.CommitString)
-
-		if strings.Contains(entry.CommitString, ":") {
-			commitType := strings.SplitN(entry.CommitString, ":", 2)
-			fmt.Printf("Commit type is: %v and the tag is %v\n", commitType[0], entry.Tag)
-		} else {
-			fmt.Printf("No colon for commit %v\n", entry.CommitString)
-		}
-	}
-
 	fileP, err := os.Create("./CHANGELOG.md")
 
 	var content strings.Builder

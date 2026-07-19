@@ -268,6 +268,9 @@ func CLI(CommandLineArguments []string) error {
 			}
 			fmt.Println(version)
 
+		case "--Change-log", "-changelog", "--changelog", "--log", "--change":
+			git.MakeChangeLog(".")
+
 		case "--increment-tag", "-increment-tag", "-i", "--incrementtag", "-incrementtag":
 			var argument string
 			var force bool
