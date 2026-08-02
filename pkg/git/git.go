@@ -412,11 +412,13 @@ func MakeChangeLog(repo string) {
 	}
 
 	commitHistory := []LineEntry{}
-	previousTag, err := GetLatestTag(false)
+	/* previousTag, err := GetLatestTag(false)
 	if err != nil {
 		fmt.Print("Unbale to get the latest tag")
 		return
-	}
+	} */
+
+	previousTag := "LATEST"
 
 	tag := previousTag
 	var tagList []string

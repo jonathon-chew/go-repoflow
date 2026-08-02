@@ -24,6 +24,14 @@ func help() {
 	aphrodite.PrintBold("cyan", "\tSubcommands:\n")
 	aphrodite.PrintColour("Green", "\tnon-ansi, html, markdown, md\n\n")
 
+	aphrodite.PrintBold("cyan", "--docs\n")
+	aphrodite.PrintBold("cyan", "Documentation\n")
+	aphrodite.PrintColour("Green", "Check if the right documentation are present!\n\n")
+
+	aphrodite.PrintBold("cyan", "--doctor\n")
+	aphrodite.PrintBold("cyan", "Doctor\n")
+	aphrodite.PrintColour("Green", "Check if the right tools are in place!\n\n")
+
 	aphrodite.PrintBold("cyan", "--get\n")
 	aphrodite.PrintBold("Cyan", "Get issues\n")
 	aphrodite.PrintColour("Green", "List GitHub issues for the current repo, or inspect local TODOs depending on subcommands.\n\n")
