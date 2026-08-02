@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	"github.com/jonathon-chew/go-repoflow/internal/Utils"
 	"github.com/jonathon-chew/go-repoflow/pkg/git"
 	"github.com/jonathon-chew/go-repoflow/pkg/git/git_utils"
 
@@ -84,9 +83,9 @@ func CLI(CommandLineArguments []string) error {
 		switch command {
 		default:
 			aphrodite.PrintError(command + " is not recognised")
-		case "--debug", "-debug", "-d":
+		case "debug", "--debug", "-debug", "-d":
 			continue
-		case "--repo-stats", "-rs":
+		case "repo-stats", "--repo-stats", "-rs":
 			RepoStats, ErrGettingRepoStats := git.GetRepoStats()
 			if ErrGettingRepoStats != nil {
 				return ErrGettingRepoStats
@@ -99,7 +98,7 @@ func CLI(CommandLineArguments []string) error {
 				"Stargazer's Count: " + strconv.Itoa(RepoStats.Stargazers_count) + "\n" +
 				"Watchers Count: " + strconv.Itoa(RepoStats.Watchers_count) + "\n")
 
-		case "--commit-calendar", "--cc", "-cc":
+		case "commit-calendar", "--commit-calendar", "--cc", "-cc":
 			var option string
 			if len(CommandLineArguments) > index+1 {
 				option = CommandLineArguments[index+1]
@@ -108,7 +107,7 @@ func CLI(CommandLineArguments []string) error {
 			git.MakeCommitMap(option)
 			return nil
 
-		case "--check", "-c":
+		case "check", "--check", "-c":
 			entries := git_utils.MakeDirectoryList(git_utils.FindFilesInCurrentDirectory())
 
 			for _, entry := range entries {
@@ -118,15 +117,11 @@ func CLI(CommandLineArguments []string) error {
 				}
 			}
 
-		case "--clone", "-cl":
+		case "clone", "--clone", "-cl":
 			git.CloneAllPublicRepos()
 			return nil
 
-		case "--doctor":
-			Utils.Doctor()
-			return nil
-
-		case "--get", "-get", "-g", "--list", "-list", "-l":
+		case "get", "--get", "-get", "-g", "--list", "-list", "-l":
 			returned, err := git.ListGithubIssues(true)
 			if err != nil && errors.Is(err, NoIssues) {
 				aphrodite.PrintWarning("no GitHub issues found")
@@ -148,18 +143,18 @@ func CLI(CommandLineArguments []string) error {
 			if len(os.Args) > 2 {
 				for _, extraCommand := range os.Args[2:] {
 					switch extraCommand {
-					case "--closed", "-closed", "-c":
+					case "closed", "--closed", "-closed", "-c":
 						closedFlag = true
 						openFlag = false
-					case "--all", "-all", "-a":
+					case "all", "--all", "-all", "-a":
 						openFlag = false
-					case "--oneline", "--one-line", "-ol":
+					case "oneline", "--oneline", "--one-line", "-ol":
 						oneLineFlag = true
 						width, _, ErrGettingTerminalDetails = term.GetSize(int(os.Stdout.Fd()))
 						if ErrGettingTerminalDetails != nil {
 							return ErrGettingTerminalDetails
 						}
-					case "--local", "-local", "-l":
+					case "local", "--local", "-local", "-l":
 						modifyFile = false
 					}
 				}
@@ -218,7 +213,7 @@ func CLI(CommandLineArguments []string) error {
 
 			return nil
 
-		case "--set", "-set", "-s":
+		case "set", "--set", "-set", "-s":
 			var IssueTitle, IssueBody string
 			var IssueLabel []string
 
@@ -259,24 +254,24 @@ func CLI(CommandLineArguments []string) error {
 
 			return nil
 
-		case "--version", "-version", "-v":
+		case "version", "--version", "-version", "-v":
 			fmt.Printf("v0.7.14\n")
 
-		case "--help", "-help", "-h":
+		case "help", "--help", "-help", "-h":
 			help()
 			return nil
 
-		case "--tags", "-tags", "-t", "--tag", "-tag":
+		case "tags", "--tags", "-tags", "-t", "--tag", "-tag":
 			version, ErrGetLatestTag := git.GetLatestTag(false)
 			if ErrGetLatestTag != nil {
 				return ErrGetLatestTag
 			}
 			fmt.Println(version)
 
-		case "--Change-log", "-changelog", "--changelog", "--log", "--change":
+		case "Change-log", "--Change-log", "-changelog", "--changelog", "--log", "--change":
 			git.MakeChangeLog(".")
 
-		case "--increment-tag", "-increment-tag", "-i", "--incrementtag", "-incrementtag":
+		case "increment-tag", "--increment-tag", "-increment-tag", "-i", "--incrementtag", "-incrementtag":
 			var argument string
 			var force bool
 			if len(CommandLineArguments) > index+1 {
@@ -297,19 +292,19 @@ func CLI(CommandLineArguments []string) error {
 				return ErrMakingNewTag
 			}
 
-		case "--open", "-open", "-o":
+		case "open", "--open", "-open", "-o":
 			ErrOpeningRemoteOrigin := git.OpenRemoteOrigin("")
 			if ErrOpeningRemoteOrigin != nil {
 				return ErrOpeningRemoteOrigin
 			}
 
-		case "--open-issues", "-open-issues", "-oi":
+		case "open-issues", "--open-issues", "-open-issues", "-oi":
 			ErrOpeningRemoteOrigin := git.OpenRemoteOrigin("issues")
 			if ErrOpeningRemoteOrigin != nil {
 				return ErrOpeningRemoteOrigin
 			}
 
-		case "--open-pull", "-open-pull", "-op":
+		case "open-pull", "--open-pull", "-open-pull", "-op":
 			ErrOpeningRemoteOrigin := git.OpenRemoteOrigin("pull")
 			if ErrOpeningRemoteOrigin != nil {
 				return ErrOpeningRemoteOrigin
