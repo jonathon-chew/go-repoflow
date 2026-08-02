@@ -1,5 +1,13 @@
 # CHANGELOG
 
+	## v0.10.1 
+
+		### NEW
+		1. adding a new change log, tracking git changes in one place / file
+		### UPDATES
+		1. better adherance to expected CLI commands, not everything is prefixed with a -- or -, normally reserved for subcommands, but keeping the origionals as well
+		1. moved utils to gitutils to avoid package clashing with internal Utils
+
 	## v0.10.0 
 
 		### NEW
