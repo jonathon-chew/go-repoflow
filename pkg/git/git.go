@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
+	git_utils "github.com/jonathon-chew/go-repoflow/pkg/git/git_utils"
 )
 
 var HTTPStatusResponseMeanings = map[string]string{
@@ -56,7 +56,7 @@ func GetRemoteOrigin() (string, error) {
 
 func FindGitFolder() bool {
 
-	directoryList := utils.MakeDirectoryList(utils.FindFilesInCurrentDirectory())
+	directoryList := git_utils.MakeDirectoryList(git_utils.FindFilesInCurrentDirectory())
 
 	// Look in the directories for a git folder
 	if !slices.Contains(directoryList, ".git") {
@@ -359,10 +359,10 @@ func CheckForGitUpdate(entry string) error {
 func MakeCommitMap(option string) {
 
 	root := "." // You can make this configurable
-	repos := utils.FindGitRepos(root)
+	repos := git_utils.FindGitRepos(root)
 	var totalCount int
 
-	totalCommits := make(utils.CommitMap)
+	totalCommits := make(git_utils.CommitMap)
 	for _, repo := range repos {
 		// fmt.Println("Scanning:", repo)
 		commits := getCommitDates(repo)
@@ -373,10 +373,10 @@ func MakeCommitMap(option string) {
 	}
 
 	aphrodite.PrintInfo("Total Count: " + strconv.Itoa(totalCount) + "\n")
-	utils.RenderDateGraph(totalCommits, option)
+	git_utils.RenderDateGraph(totalCommits, option)
 }
 
-func getCommitDates(repo string) utils.CommitMap {
+func getCommitDates(repo string) git_utils.CommitMap {
 	cmd := exec.Command("git", "log", "--pretty=format:%ad", "--date=short")
 	cmd.Dir = repo
 	out, err := cmd.Output()
@@ -384,7 +384,7 @@ func getCommitDates(repo string) utils.CommitMap {
 		fmt.Println("Error reading commits from", repo, err)
 		return nil
 	}
-	commits := make(utils.CommitMap)
+	commits := make(git_utils.CommitMap)
 	scanner := bufio.NewScanner(strings.NewReader(string(out)))
 	for scanner.Scan() {
 		date := scanner.Text()

@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
+	"github.com/jonathon-chew/go-repoflow/internal/Utils"
 	"github.com/jonathon-chew/go-repoflow/pkg/git"
-	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
+	"github.com/jonathon-chew/go-repoflow/pkg/git/git_utils"
 
 	"golang.org/x/term"
 )
@@ -108,7 +109,7 @@ func CLI(CommandLineArguments []string) error {
 			return nil
 
 		case "--check", "-c":
-			entries := utils.MakeDirectoryList(utils.FindFilesInCurrentDirectory())
+			entries := git_utils.MakeDirectoryList(git_utils.FindFilesInCurrentDirectory())
 
 			for _, entry := range entries {
 				ErrCheckingForUpdate := git.CheckForGitUpdate(entry)
@@ -119,6 +120,10 @@ func CLI(CommandLineArguments []string) error {
 
 		case "--clone", "-cl":
 			git.CloneAllPublicRepos()
+			return nil
+
+		case "--doctor":
+			Utils.Doctor()
 			return nil
 
 		case "--get", "-get", "-g", "--list", "-list", "-l":

@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	aphrodite "github.com/jonathon-chew/Aphrodite"
-	utils "github.com/jonathon-chew/go-repoflow/pkg/git/utils"
+	git_utils "github.com/jonathon-chew/go-repoflow/pkg/git/git_utils"
 )
 
 type Limit struct {
@@ -349,7 +349,7 @@ func ProcessTodosInRepo(modifyFile bool) int {
 	// Initialise the known files to ignore
 	unwantedFiles := []string{".localized", ".DS_Store", ".gitignore", "response.txt"}
 	unwantedExtentions := []string{".app", ".exe", ".elf", ".md"}
-	fileList := utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
+	fileList := git_utils.FindAllFilesInCurrentDirectoryAndSubdirectories()
 	listOfGithubIssues := []GithubIssueResponse{}
 	CurrentNumberOfIssues := 0
 
@@ -667,12 +667,12 @@ func CloseGithubIssue(closeIssue *GithubIssueUpdate) error {
 // Clones all the public repos of a given person, the input is determined from inside the function, instead of passed to it
 func CloneAllPublicRepos() {
 
-	userName, ErrGettingUserName := utils.GetUserInput([]byte("What is the name of the user/org you would like to clone? \n"))
+	userName, ErrGettingUserName := git_utils.GetUserInput([]byte("What is the name of the user/org you would like to clone? \n"))
 	if ErrGettingUserName != nil {
 		return
 	}
 
-	confirmPrompt, ErrGettingConfirmedPrompt := utils.GetUserInput([]byte("We're going to get everything from: " + userName + " y/Y? \n"))
+	confirmPrompt, ErrGettingConfirmedPrompt := git_utils.GetUserInput([]byte("We're going to get everything from: " + userName + " y/Y? \n"))
 	if ErrGettingConfirmedPrompt != nil {
 		return
 	}
@@ -695,7 +695,7 @@ func CloneAllPublicRepos() {
 	userReq.Body.Close()
 
 	if userDetails.Public_repos > 50 {
-		userReponse, ErrGettingConfirmLargeDownload := utils.GetUserInput([]byte("There are " + strconv.Itoa(userDetails.Public_repos) + " repos to clone - are you sure? y/Y\n"))
+		userReponse, ErrGettingConfirmLargeDownload := git_utils.GetUserInput([]byte("There are " + strconv.Itoa(userDetails.Public_repos) + " repos to clone - are you sure? y/Y\n"))
 		if ErrGettingConfirmLargeDownload != nil {
 
 			return
@@ -723,8 +723,8 @@ func CloneAllPublicRepos() {
 	// Write header
 	os.Stdin.Write([]byte("# GitHub Repositories"))
 
-	utils.NewDirectory()
-	ErrMovingDirectory := os.Chdir(utils.TemporaryDirectory)
+	git_utils.NewDirectory()
+	ErrMovingDirectory := os.Chdir(git_utils.TemporaryDirectory)
 	if ErrMovingDirectory != nil {
 		log.Fatal(ErrMovingDirectory)
 		return
