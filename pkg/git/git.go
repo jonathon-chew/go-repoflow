@@ -264,7 +264,7 @@ func NewGitTag(argument string, force bool) error {
 			return ErrUserInput
 		}
 		if userChoiceVersionUpdate != "major" && userChoiceVersionUpdate != "minor" && userChoiceVersionUpdate != "patch" {
-			return fmt.Errorf("[ERROR]: user input was not major, minor or patch")
+			return fmt.Errorf("[ERROR]: user input was not major, minor or patch\n")
 		} else {
 			argument = userChoiceVersionUpdate
 		}
@@ -322,7 +322,7 @@ func CheckForGitUpdate(entry string) error {
 
 	// Fast repo check: is there a .git directory / file?
 	if _, err := os.Stat(filepath.Join(dirPath, ".git")); err != nil {
-		aphrodite.PrintError(fmt.Sprintf("%s not a git folder", dirPath)) // not a git repo (or not accessible)
+		aphrodite.PrintError(fmt.Sprintf("%s not a git folder\n", dirPath)) // not a git repo (or not accessible)
 		return nil
 	}
 
