@@ -1,12 +1,16 @@
+## Folders
 Archive/
-example_response.json
-Thoth
-coverage.out
 ExmaplesFolder
-repoflow
 internal/git/Github_Docs/
 internal/git/Giblab_Docs/
 pkg/git/Github_Docs/
 pkg/git/Gitlab_Docs/
-response.txt
 repoflow_test
+
+## Files
+example_response.json
+Thoth
+coverage.out
+repoflow
+response.txt
+docs/development-quality-roadmap.md
